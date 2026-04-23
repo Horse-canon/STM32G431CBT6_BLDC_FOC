@@ -30,8 +30,6 @@
 #include "m_ctrl.h"
 #include "m_parameter.h"
 
-
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,7 +106,6 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    printf("hello world !\r\n");
 
     /* USER CODE BEGIN 3 */
   }

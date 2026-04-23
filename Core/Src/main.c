@@ -27,6 +27,9 @@
 #include "mcu_uart.h"
 #include "mcu_pwm.h"
 #include "stdio.h"
+#include "m_ctrl.h"
+#include "m_parameter.h"
+
 
 
 /* USER CODE END Includes */
@@ -96,6 +99,8 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   drv_pwm_init();
+  m_motor_ctrl.direction = CCW;
+	printf("foc driver board, hall svpwm project\r\n");	
   /* USER CODE END 2 */
 
   /* Infinite loop */

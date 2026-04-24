@@ -29,21 +29,21 @@ extern "C" {
 /* * STM32G431 主频 170MHz
  * 中心对齐模式下：ARR = 170MHz / (2 * 20KHz) = 4250
  */
-#define PWM_PERIOD_T_VALUE         (4250)  
+#define MCU_PWM_TIMER_ARR         (4250)  
 
 /* --- 占空比限制与死区补偿 --- */
-/* * 死区时间计算：170MHz 时钟，2us 约对应 340 个计数位
+/* * 死区时间计算：170MHz 时钟，1us 约对应 170 个计数位
  * 注意：如果您依靠预驱 FD6288T 硬件死区，这里可以设小或设为 0
  */
-#define DEAD_TIME                  340         // 170MHz 下 2us 对应 340
+#define DEAD_TIME                  170         // 170MHz 下 1us 对应 170
 #define MIN_DUTY_VALUE             (20)        // 最小有效脉宽限制（防止波形太窄）
 
 /* * 最大占空比限幅：
  * 在 PWM Mode 2 下，CCR 越小占空比越大。
  * 为了给自举电容留出充电时间，不能让上管 100% 开启，
- * 因此 CCR 不能真的到 0。这里留出 2us 的余量（340）。
+ * 因此 CCR 不能真的到 0。这里留出 1us 的余量（170）。
  */
-#define MAX_DUTY_VALUE             (PWM_PERIOD_T_VALUE - DEAD_TIME)
+#define MAX_DUTY_VALUE             (MCU_PWM_TIMER_ARR - DEAD_TIME)
 
 /* --- 电角度常量 (Q16 格式，0~65535 对应 0~360度) --- */
 #define      EANGLE0       0

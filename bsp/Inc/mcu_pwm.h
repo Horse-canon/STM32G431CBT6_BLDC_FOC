@@ -14,11 +14,11 @@ extern "C" {
 #endif
 
 #include "main.h"  // 包含 HAL 库及句柄定义
+#include "m_parameter.h"
 
 /* * 频率计算: 170MHz / (2 * 20KHz) = 4250 
  * 这里定义为宏，方便其他模块（如 FOC 算法）引用进行标幺化计算 
  */
-#define MCU_PWM_TIMER_ARR      4250
 #define PWM_PERIOD_VALUE       MCU_PWM_TIMER_ARR
 
 /**

@@ -48,6 +48,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     bsp/Src/mcu_uart.c
     bsp/Src/mcu_pwm.c
     motor/Src/m_ctrl.c
+    motor/Src/m_tick.c
 )
 
 # Add include paths

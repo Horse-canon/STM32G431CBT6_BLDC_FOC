@@ -1,9 +1,10 @@
 #include "m_ctrl.h"
 #include <stdio.h>
+#include "m_parameter.h"
 
 /* 定义 0% 占空比对应的 CCR 值 */
 /* 在 PWM Mode 2 下，CCR = ARR(4250) 时，上管全关，下管全开 */
-#define MOTOR_DUTY_ZERO_PERCENT    PWM_PERIOD_VALUE 
+#define MOTOR_DUTY_ZERO_PERCENT    MCU_PWM_TIMER_ARR 
 
 m_motor_ctrl_t m_motor_ctrl = 
 {

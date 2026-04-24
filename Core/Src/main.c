@@ -30,6 +30,9 @@
 #include "stdio.h"
 #include "m_ctrl.h"
 #include "m_parameter.h"
+#include "m_foc.h"
+#include "mcu_hall.h"
+#include "mcu_adc.h"
 
 /* USER CODE END Includes */
 
@@ -98,7 +101,10 @@ int main(void)
   MX_TIM1_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+  drv_hall_init();
+  drv_adc_init();
   drv_pwm_init();
   m_motor_ctrl.direction = CCW;
 	printf("foc driver board, hall svpwm project\r\n");	
@@ -108,6 +114,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    m_us_radius_calculate();
+    m_motor_execute_ctrl();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

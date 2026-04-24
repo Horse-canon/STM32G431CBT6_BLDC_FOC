@@ -1,7 +1,15 @@
 #include "mcu_pwm.h"
 #include "tim.h" 
 #include <stdio.h>
+#include "m_parameter.h"
 
+/* 引入在 tim.c 中生成的 TIM1 句柄 */
+extern TIM_HandleTypeDef htim1;
+
+/* * 频率计算: 170MHz / (2 * 20KHz) = 4250 
+ * 这里定义为宏，方便其他模块（如 FOC 算法）引用进行标幺化计算 
+ */
+#define PWM_PERIOD_VALUE       MCU_PWM_TIMER_ARR
 
 /**
   ******************************************************************************
@@ -26,9 +34,6 @@ void drv_pwm_init(void)
     HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
     HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
     HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
-
-    /* 4. 延时给自举电容充电，FD6288T 通常 5~10ms 即可 */
-    HAL_Delay(10); 
 }
 
 

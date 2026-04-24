@@ -49,8 +49,14 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     bsp/Src/mcu_pwm.c
     motor/Src/m_ctrl.c
     motor/Src/m_tick.c
+    bsp/Src/mcu_adc_cb.c
+    motor/Src/m_foc.c
+    motor/Src/m_svpwm.c
+    bsp/Src/mcu_hall.c
+    bsp/Src/mcu_hall_cb.c
     bsp/Src/mcu_adc.c
-)
+    motor/Src/m_rotor_angle.c
+   )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE

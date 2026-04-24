@@ -1,8 +1,8 @@
 /** @addtogroup DRV
 * @{
 */
-#ifndef __DRV_ADC_H__
-#define __DRV_ADC_H__
+#ifndef __DRV_HALL_H__
+#define __DRV_HALL_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,13 +10,10 @@ extern "C" {
 
 #include "main.h"
 
-void drv_adc_init(void);
+void drv_hall_init(void);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-/**
-  * @}
-  */

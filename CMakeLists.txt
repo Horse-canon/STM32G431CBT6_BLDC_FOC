@@ -56,6 +56,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     bsp/Src/mcu_hall_cb.c
     bsp/Src/mcu_adc.c
     motor/Src/m_rotor_angle.c
+    bsp/Src/mcu_key.c
    )
 
 # Add include paths

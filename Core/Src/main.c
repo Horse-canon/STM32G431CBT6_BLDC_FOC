@@ -33,6 +33,7 @@
 #include "m_foc.h"
 #include "mcu_hall.h"
 #include "mcu_adc.h"
+#include "mcu_key.h"
 
 /* USER CODE END Includes */
 
@@ -118,6 +119,7 @@ int main(void)
   {
     m_us_radius_calculate();
     m_motor_execute_ctrl();
+    drv_key_scan();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

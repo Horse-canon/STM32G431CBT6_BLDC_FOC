@@ -95,6 +95,8 @@ void m_motor_stop(void)
     
     /* 物理表现为 0% 占空比 */
     drv_pwm_set_duty(MOTOR_DUTY_ZERO_PERCENT, MOTOR_DUTY_ZERO_PERCENT, MOTOR_DUTY_ZERO_PERCENT);
+
+    m_motor_init();
 }
 
 /**

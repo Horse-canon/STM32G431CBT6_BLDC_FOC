@@ -11,6 +11,7 @@
 #include "m_tick.h"
 #include "typedef_header.h"
 #include "m_foc.h"
+#include "m_ctrl.h"
 
 /* 引入外部的ADC句柄，用于HAL库读取 */
 extern ADC_HandleTypeDef hadc1;
@@ -48,6 +49,58 @@ void drv_adc1_sample(void)
 }
 
 /**
+ ******************************************************************************
+ * @brief  ADC 组0数据滤波 (STM32 移植版)
+ * @note   包含启动阶段相电流偏置校准，以及母线电压的滑动平均滤波
+ ******************************************************************************/
+void drv_adc0_filter(void)
+{
+    /*初始阶段电流静态误差计算*/
+    if(m_motor_ctrl.offset_current_sign == true)
+    {
+        /*累加和：
+            Ia_static=静态误差 * 50 + 1.65V
+            Ib_static=静态误差 * 10 + 1.65V
+            Ic_static=静态误差 * 10 + 1.65V 
+        */
+        adc_unit.u_current.sum_value += adc_unit.u_current.instant_value;
+        adc_unit.v_current.sum_value += adc_unit.v_current.instant_value;
+        adc_unit.w_current.sum_value += adc_unit.w_current.instant_value;
+        /*累加计数*/
+        adc_unit.u_current.number_value++;
+        adc_unit.v_current.number_value++;
+        adc_unit.w_current.number_value++;
+        /*静态误差校正时间到*/
+        if(m_tick_unit.phase_current_offset_time == 0)
+        {
+            /*静态误差平均值*/
+            adc_unit.u_current.average_value = adc_unit.u_current.sum_value / \
+                                               adc_unit.u_current.number_value;
+            adc_unit.v_current.average_value = adc_unit.v_current.sum_value / \
+                                               adc_unit.v_current.number_value;
+            adc_unit.w_current.average_value = adc_unit.w_current.sum_value / \
+                                               adc_unit.w_current.number_value;
+            
+            adc_unit.u_current_offset = adc_unit.u_current.average_value;
+            adc_unit.v_current_offset = adc_unit.v_current.average_value;
+            adc_unit.w_current_offset = adc_unit.w_current.average_value;
+            /*静态误差计算结束*/
+            m_motor_ctrl.offset_current_sign = false;
+        }
+    }
+    
+    //母线电压 128次平均滤波处理
+    adc_unit.bus_voltage.sum_value += adc_unit.bus_voltage.instant_value;
+    adc_unit.bus_voltage.number_value++;
+    if(adc_unit.bus_voltage.number_value >= 128)
+    {
+        adc_unit.bus_voltage.average_value = (uint16_t)(adc_unit.bus_voltage.sum_value >> 7);
+        adc_unit.bus_voltage.sum_value = 0;
+        adc_unit.bus_voltage.number_value = 0;
+    } 
+}
+
+/**
   ******************************************************************************
   * @brief  调速电位器数据滤波 (保持原有的16次均值低通滤波逻辑)
   ******************************************************************************
@@ -69,17 +122,37 @@ void drv_adc1_filter(void)
 }
 
 /**
-  ******************************************************************************
-  * @brief  STM32 注入组转换完成中断回调 
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @brief  STM32 注入组转换完成中断回调 (高频 FOC 控制核心)
+ ******************************************************************************
+ */
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
     /* ADC1 和 ADC2 的注入组是硬件同步触发的，只需在一个句柄中处理 FOC 即可 */
     if (hadc->Instance == ADC1)
     {     
-        m_foc_algorithm_execute();
+        /* 第1步：获取最新鲜的 ADC 采样数据 */
         drv_adc0_sample();
+        
+        /* 第2步：执行滤波与静态偏置误差校准 */
+        drv_adc0_filter();  
+
+        /* 第3步：Ia Ib Ic三相相电流计算 */
+        //m_phase_current_calculate();		       
+        
+        /* 第4步：电流Clark变换 */
+        //m_clark_transform();		
+
+        /* 第5步：电流Park变换 */
+				//m_park_transform(m_foc_unit.rotor_engle);   
+
+        /* 第6步：电流环PID执行 */
+				//m_current_pid_execute();			
+
+        /* 第7步：执行 FOC 核心控制算法 */
+        m_foc_algorithm_execute();
+        
+        /* 第8步：系统时基滴答更新 */
         m_tick();
     }
 }

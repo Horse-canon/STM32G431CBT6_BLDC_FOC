@@ -88,14 +88,14 @@ int main(void)
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
-
+ 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  
   /* USER CODE END SysInit */
-
+   
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
@@ -108,7 +108,7 @@ int main(void)
   drv_adc_init();
   drv_pwm_init();
   printf("foc driver board, hall svpwm project\r\n");	
-
+       
   HAL_Delay(200);  // 等待系统电源稳定
   m_motor_phase_current_offset_calculate();  //相电流静态误差计算
   /* USER CODE END 2 */

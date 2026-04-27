@@ -106,8 +106,10 @@ int main(void)
   drv_hall_init();
   drv_adc_init();
   drv_pwm_init();
-  m_motor_ctrl.direction = CCW;
-	printf("foc driver board, hall svpwm project\r\n");	
+  printf("foc driver board, hall svpwm project\r\n");	
+
+  HAL_Delay(200);  // 等待系统电源稳定
+  m_motor_phase_current_offset_calculate();  //相电流静态误差计算
   /* USER CODE END 2 */
 
   /* Infinite loop */

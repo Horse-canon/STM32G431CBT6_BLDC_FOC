@@ -23,7 +23,9 @@ extern "C" {
 
 /* --- 数学常量 --- */
 /* sqrt(3)/2 的 Q16 格式: 0.866025 * 65536 = 56756 */
+/* 1/sqrt3 的 Q16 格式: 37837 */
 #define SQRT3DIV2                  56756  
+#define ONE_DIV_SQRT3              37837  
 
 /* --- PWM 周期参数 (核心适配点) --- */
 /* * STM32G431 主频 170MHz
@@ -36,14 +38,8 @@ extern "C" {
  * 注意：如果您依靠预驱 FD6288T 硬件死区，这里可以设小或设为 0
  */
 #define DEAD_TIME                  170         // 170MHz 下 1us 对应 170
-#define MIN_DUTY_VALUE             (20)        // 最小有效脉宽限制（防止波形太窄）
-
-/* * 最大占空比限幅：
- * 在 PWM Mode 2 下，CCR 越小占空比越大。
- * 为了给自举电容留出充电时间，不能让上管 100% 开启，
- * 因此 CCR 不能真的到 0。这里留出 1us 的余量（170）。
- */
-#define MAX_DUTY_VALUE             (MCU_PWM_TIMER_ARR - DEAD_TIME)
+#define MIN_DUTY_VALUE             (DEAD_TIME )        // 最小有效脉宽限制（防止波形太窄）
+#define MAX_DUTY_VALUE             (MCU_PWM_TIMER_ARR  - (DEAD_TIME + (DEAD_TIME >> 1)))
 
 /* --- 电角度常量 (Q16 格式，0~65535 对应 0~360度) --- */
 #define      EANGLE0       0
@@ -66,6 +62,8 @@ extern "C" {
 
 /* 电机极对数及范围设定 */
 #define MOTOR_POLE_PAIRS           2
+#define MOTOR_MIN_SPEED            300     //电机最小转速
+#define MOTOR_MAX_SPEED            2300    //电机最大转速
 #define MIN_SPEED_HALL_TIME_VALUE  SPEED_HALL_TIME_CALCULATE(50, MOTOR_POLE_PAIRS, 1)
 #define MAX_SPEED_HALL_TIME_VALUE  SPEED_HALL_TIME_CALCULATE(3000, MOTOR_POLE_PAIRS, 1)
 
@@ -89,6 +87,18 @@ extern "C" {
 /* 0.9 * 65536 ≈ 58982 (最大调制比) */
 #define M_MAX_VALUE                58982
 #define M_MIN_VALUE                655
+#define M_OPEN_LOOP_VALUE                       9830
+
+#define US_MAX_VALUE                            (int16_t)29491   //Us模长最大值 Q15格式 90%
+#define PHASE_CURRENT_OFFSET_TIME               (20 * 1000)      //1s
+
+#define SPD_PID_CYCLE_TIME                      (20 * 30)        //200ms
+#define INC_SPD_RPM                             100              //斜坡转速递增步进        
+#define DEC_SPD_RPM                             100              //斜坡减速递减步进
+#define SET_IQ_MIN                              20               //最小Iq设定值
+#define START_IQ                                200              //启动运行阶段Iq
+
+#define MOTOR_HALL_STABILIZE_NUMBER             12               //电机霍尔传感器稳定检测阈值
 
 #ifdef __cplusplus
 }

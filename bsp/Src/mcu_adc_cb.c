@@ -12,6 +12,7 @@
 #include "typedef_header.h"
 #include "m_foc.h"
 #include "m_ctrl.h"
+#include "m_coordinate.h"
 
 /* 引入外部的ADC句柄，用于HAL库读取 */
 extern ADC_HandleTypeDef hadc1;
@@ -138,13 +139,13 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
         drv_adc0_filter();  
 
         /* 第3步：Ia Ib Ic三相相电流计算 */
-        //m_phase_current_calculate();		       
+        m_phase_current_calculate();		       
         
         /* 第4步：电流Clark变换 */
-        //m_clark_transform();		
+        m_clark_transform();		
 
         /* 第5步：电流Park变换 */
-				//m_park_transform(m_foc_unit.rotor_engle);   
+				m_park_transform(m_foc_unit.rotor_engle);   
 
         /* 第6步：电流环PID执行 */
 				//m_current_pid_execute();			

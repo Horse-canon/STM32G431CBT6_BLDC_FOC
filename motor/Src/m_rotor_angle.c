@@ -121,16 +121,19 @@ void m_rotor_angle_init(void)
  */
 
 /**
-  ******************************************************************************
-  * @brief  转子位置角计算：间隔50us进行一次计算
-  * @retval 转子位置角 Q16
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @brief  转子位置角计算：间隔50us进行一次计算 (完美融合 STM32 硬件霍尔中断)
+ * @retval 转子位置角 Q16 (0~65535 对应 0~360度)
+ ******************************************************************************
+ */
 uint16_t m_rotor_angle_calculate(void)
 {
+    uint32_t delta_time = 0;
+    
+    /* 1. 获取当前霍尔引脚电平，判断是否发生状态变化 */
     m_hall_value_get();
     
-    /* m_hall_unit.update_sign=true:霍尔值有更新 */
+    /* m_hall_unit.update_sign=true: 霍尔状态在此次 50us 周期内发生了跳变 */
     if(m_hall_unit.update_sign)
     {
         m_hall_unit.update_sign = false;
@@ -139,71 +142,80 @@ uint16_t m_rotor_angle_calculate(void)
         switch(m_motor_ctrl.direction)
         {
             case CCW://逆时针
-                /*获取霍尔沿跳变转子位置角*/
+                /* 获取霍尔沿跳变瞬间的绝对基准转子位置角 */
                 rotor_angle.u32 = ROTOR_ANGLE_TABLE_CCW[m_hall_unit.value];
-                monitor_rotor_angle.u32 = rotor_angle.u32; //转子位置角监测
+                monitor_rotor_angle.u32 = rotor_angle.u32; 
             break;
             case CW: //顺时针
-                /*获取霍尔沿跳变转子位置角*/
                 rotor_angle.u32 = ROTOR_ANGLE_TABLE_CW[m_hall_unit.value];
-                monitor_rotor_angle.u32 = rotor_angle.u32; //转子位置角监测
+                monitor_rotor_angle.u32 = rotor_angle.u32; 
             break;
         }   
         
-        /* 检测到三相中任意一相沿跳变：捕捉到电角度时间 */
+        /* 2. 检查定时器中断是否已经捕获到了时间 */
+        /* 在你的 HAL_TIM_IC_CaptureCallback 中，跳变时 u/v/w_sign 被同时置位了 */
         if(*hall_capture_unit.u_sign || *hall_capture_unit.v_sign || *hall_capture_unit.w_sign)
         {
+            /* * 【完美对接中断】
+             * 中断里已经把 60° 电角度的硬件级时间差存在变量里了，
+             * 直接取 u_capture_val (反正 u,v,w 存的值都一样) 
+             */
+            delta_time = hall_capture_unit.hall_u_capture_val_func(); 
+            
+            /* 清除中断标志位，等待下一次霍尔边沿跳变 */
             hall_capture_unit.hall_capture_sign_clear_func();
             
-            /* [STM32 移植] 因为底层采集的已经是直接的 60° 电角度时间
-             * 且 u, v, w 的值在回调中被统一赋予了相同的值，
-             * 因此只需将三者相加后除以 3 取平均即可 (替代原版的 / 9)
-             */
-            m_hall_unit.time = (hall_capture_unit.hall_u_capture_val_func() + \
-                                hall_capture_unit.hall_v_capture_val_func() + \
-                                hall_capture_unit.hall_w_capture_val_func()) / 3;
+            /* 直接更新电角度时间 */
+            m_hall_unit.angle_60_time = delta_time;
         }
-        
-        m_hall_unit.angle_60_time = m_hall_unit.time;
 
+        /* 3. 对 60° 电角度时间进行双重低通滤波，消除机械震动与干扰 */
         if (m_hall_unit.angle_60_time != 0)
         {
-            /* 沿用原有的低通滤波宏 */
             m_hall_unit.angle_60_time_filter1 = LPF_CALC(m_hall_unit.angle_60_time, \
                                                          m_hall_unit.angle_60_time_filter1);
             m_hall_unit.angle_60_time_filter2 = LPF_CALC(m_hall_unit.angle_60_time_filter1, \
                                                          m_hall_unit.angle_60_time_filter2);
         }
         
-        /*电机运行初始阶段：霍尔捕获电角度值未到稳定状态*/
+        /* 4. 起步阶段与极限转速限幅保护 */
+        /* 电机运行初始阶段：霍尔捕获电角度值未到稳定状态 */
         if(m_hall_unit.start_sign == true)
         {
-            m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;//50RPM     最低转速对应60°电角度值
+            m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;//50RPM 最低转速对应60°电角度时间
             if(m_hall_unit.start_cnt++ >= 10)
             {
                 m_hall_unit.start_sign = false;
             }
         }
-        /*霍尔捕获电角度值未到稳定状态*/
+        /* 霍尔捕获电角度值已到稳定状态 */
         else
         {
-            m_hall_unit.time = m_hall_unit.angle_60_time_filter2;   //>50RPM <3000RPM对应60°电角度值
+            m_hall_unit.time = m_hall_unit.angle_60_time_filter2;   
         }
         
-        if (m_hall_unit.time <= MAX_SPEED_HALL_TIME_VALUE) //3000RPM 最高转速对应60°电角度值   
+        if (m_hall_unit.time <= MAX_SPEED_HALL_TIME_VALUE) //3000RPM 最高转速限幅   
         {               
             m_hall_unit.time = MAX_SPEED_HALL_TIME_VALUE;
         }
         
-        /* * [STM32 降维打击：FPU极速浮点除法]
-         * 直接利用 STM32 硬件 FPU 进行浮点除法，14个时钟周期搞定，
-         * 彻底淘汰低效的 while 减法循环。求得每个 50us 控制周期的角度增量。
-         */
+        /* 5. 核心：计算每个 50us 控制周期的角度增量 (利用硬件 FPU 极速浮点除法) */
         rotor_angle_inc.u32 = (uint32_t)((float)DθR_DIFF_VALUE / (float)m_hall_unit.time); 
+        
+        /* 6. 计算当前实时转速供速度环使用 */
+        m_motor_ctrl.m_spd.spd_val = 60000000 / (m_hall_unit.time * 6 * MOTOR_POLE_PAIRS);
+        
+        if(m_motor_ctrl.m_spd.stabilize_cnt++ >= MOTOR_HALL_STABILIZE_NUMBER)
+        {
+            m_motor_ctrl.m_spd.stabilize_cnt     = MOTOR_HALL_STABILIZE_NUMBER;
+            m_motor_ctrl.m_spd.stabilize_sign    = true;    // 速度计算达到稳定标记
+            m_motor_ctrl.m_spd.speed_update_sign = true;    // 触发速度环 PID 运算
+        }
     }
     else
     {
-        if (m_hall_unit.update_cnt < HALL_VALUE_TIMEOUT_THRESHOLD_VALUE) //65535 x 50us = 3.276750s
+        /* 7. 没有霍尔跳变的 50us 周期，根据上一次算出的增量进行【角度插值】平滑估算 */
+        if (m_hall_unit.update_cnt < HALL_VALUE_TIMEOUT_THRESHOLD_VALUE) 
         {   
             m_hall_unit.update_cnt++;
             switch(m_motor_ctrl.direction)
@@ -218,12 +230,13 @@ uint16_t m_rotor_angle_calculate(void)
         }
         else
         {
-            //异常处理
+            /* 超时异常处理 (检测到堵转，超过阈值时间没有收到霍尔跳变信号) */
             m_hall_unit.update_cnt = 0;
+            //m_monitor_unit.err_type.rotor_stall = 1;  
         }
     }
     
-    /* 统一返回低16位作为最终的 0~65535 的 Q16 转子角度 */
+    /* 返回最终计算/插值后的转子位置角 (0~65535) */
     return (uint16_t)rotor_angle.words.low;   
 }
 

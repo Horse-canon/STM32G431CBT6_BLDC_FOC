@@ -12,17 +12,17 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
+/* 极简版霍尔捕获接口结构体 */
 typedef struct
 {
     void (*hall_capture_sign_clear_func)(void);
     void (*hall_capture_reset_func)(void);
-    uint32_t (*hall_u_capture_val_func)(void);
-    uint32_t (*hall_v_capture_val_func)(void);
-    uint32_t (*hall_w_capture_val_func)(void);
     
-    const bool  *u_sign;
-    const bool  *v_sign;
-    const bool  *w_sign;
+    /* 只需要这一个统一的获取时间函数即可 */
+    uint32_t (*hall_capture_val_func)(void); 
+    
+    /* 只需要这一个统一的跳变标记 */
+    const bool *hall_sign; 
 } hall_capture_unit_t;
 
 extern hall_capture_unit_t hall_capture_unit;

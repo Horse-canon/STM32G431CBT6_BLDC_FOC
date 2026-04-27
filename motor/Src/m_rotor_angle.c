@@ -153,14 +153,14 @@ uint16_t m_rotor_angle_calculate(void)
         }   
         
         /* 2. 检查定时器中断是否已经捕获到了时间 */
-        /* 在你的 HAL_TIM_IC_CaptureCallback 中，跳变时 u/v/w_sign 被同时置位了 */
-        if(*hall_capture_unit.u_sign || *hall_capture_unit.v_sign || *hall_capture_unit.w_sign)
+        /* 在你的 HAL_TIM_IC_CaptureCallback 中，跳变时 hall_sign 被置位了 */
+        if(*hall_capture_unit.hall_sign)
         {
             /* * 【完美对接中断】
              * 中断里已经把 60° 电角度的硬件级时间差存在变量里了，
-             * 直接取 u_capture_val (反正 u,v,w 存的值都一样) 
+             * 直接取 hall_capture_val_func() 
              */
-            delta_time = hall_capture_unit.hall_u_capture_val_func(); 
+            delta_time = hall_capture_unit.hall_capture_val_func(); 
             
             /* 清除中断标志位，等待下一次霍尔边沿跳变 */
             hall_capture_unit.hall_capture_sign_clear_func();

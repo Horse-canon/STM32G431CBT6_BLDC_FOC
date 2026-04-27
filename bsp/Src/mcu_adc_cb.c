@@ -148,7 +148,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
 				m_park_transform(m_foc_unit.rotor_engle);   
 
         /* 第6步：电流环PID执行 */
-				//m_current_pid_execute();			
+				m_current_pid_execute();			
 
         /* 第7步：执行 FOC 核心控制算法 */
         m_foc_algorithm_execute();

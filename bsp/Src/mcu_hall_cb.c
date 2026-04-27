@@ -7,10 +7,11 @@
 
 typedef struct
 {
-    uint32_t hall_capture_val;
-    bool     hall_sign;
+    uint32_t hall_capture_val; // 记录捕获到的定时器计数值（即 60° 电角度的时间差 Δt）
+    bool     hall_sign;  // 捕获更新标志位：true 表示发生了新的霍尔跳变
 } drv_hall_capture_t;
 
+/* 实例化内部捕获变量 */
 drv_hall_capture_t drv_hall_capture;
 
 static void drv_hall_capture_sign_clear(void);
@@ -26,16 +27,28 @@ hall_capture_unit_t hall_capture_unit =
     .hall_sign                    = &drv_hall_capture.hall_sign,
 };
 
+/**
+ * @brief 清除霍尔跳变标志位
+ * @note  上层算法读取完跳变时间后，调用此函数清除标记，等待下一次跳变
+ */
 static void drv_hall_capture_sign_clear(void)
 {
     drv_hall_capture.hall_sign = false;
 }
 
+/**
+ * @brief 复位霍尔捕获参数
+ * @note  通常在电机停机、初始化或发生堵转故障恢复时调用，清空历史数据
+ */
 static void drv_hall_capture_reset(void)
 {
     memset(&drv_hall_capture, 0, sizeof(drv_hall_capture));
 }
 
+/**
+ * @brief 获取缓存的霍尔捕获时间
+ * @retval 60°电角度对应的定时器计数值 (Δt)
+ */
 static uint32_t drv_hall_capture_value(void) 
 { 
     return drv_hall_capture.hall_capture_val; 

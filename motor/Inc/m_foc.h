@@ -47,6 +47,8 @@ typedef struct
 extern m_foc_unit_t m_foc_unit;
 
 void m_us_radius_calculate(void);
+void m_current_pid_execute(void);
+void m_spd_pid_execute(void);
 void m_foc_algorithm_execute(void);
 
 #ifdef __cplusplus

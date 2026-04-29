@@ -63,9 +63,9 @@ extern "C" {
 /* 电机极对数及范围设定 */
 #define MOTOR_POLE_PAIRS           2
 #define MOTOR_MIN_SPEED            300     //电机最小转速
-#define MOTOR_MAX_SPEED            2300    //电机最大转速
+#define MOTOR_MAX_SPEED            6000    //电机最大转速 36BL61:2300  3650:6000
 #define MIN_SPEED_HALL_TIME_VALUE  SPEED_HALL_TIME_CALCULATE(50, MOTOR_POLE_PAIRS, 1)
-#define MAX_SPEED_HALL_TIME_VALUE  SPEED_HALL_TIME_CALCULATE(3000, MOTOR_POLE_PAIRS, 1)
+#define MAX_SPEED_HALL_TIME_VALUE  SPEED_HALL_TIME_CALCULATE(6500, MOTOR_POLE_PAIRS, 1)
 
 /* 角度步进计算 */
 #define DθR_DIFF_CACULATE(us)      ((uint32_t)(50.0f * 60.0f * 65536.0f / ((float)us * 360.0f)))

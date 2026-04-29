@@ -19,11 +19,13 @@
 #include "typedef_header.h" // 确保包含 union_u32 和 LPF_CALC 定义
 
 
-/* 移除不再使用的宏定义：ANGLE_ACCURACY_ENHANCEMENT_MODE，我们直接用32位自然溢出 */
 
+//转子位置角解算表36BL61 3560
 static const uint16_t  ROTOR_ANGLE_TABLE_CCW[7]  = {0,EANGLE330,EANGLE210,EANGLE270,EANGLE90,EANGLE30,EANGLE150};
 static const uint16_t  ROTOR_ANGLE_TABLE_CW[7]   = {0,EANGLE30,EANGLE270,EANGLE330,EANGLE150,EANGLE90,EANGLE210};
 static const uint16_t  ROTOR_ANGLE_INIT_TABLE[7] = {0,EANGLE0,EANGLE240,EANGLE300,EANGLE120,EANGLE60,EANGLE180};
+
+
 
 static union_u32 rotor_angle;
 static union_u32 rotor_angle_inc;

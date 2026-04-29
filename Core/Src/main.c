@@ -34,6 +34,7 @@
 #include "mcu_hall.h"
 #include "mcu_adc.h"
 #include "mcu_key.h"
+#include "string.h"
 
 /* USER CODE END Includes */
 
@@ -61,7 +62,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+void pid_vofa_debug(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -120,6 +121,7 @@ int main(void)
     m_us_radius_calculate();
     m_motor_execute_ctrl();
     drv_key_scan();
+    pid_vofa_debug();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -173,7 +175,30 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+ ******************************************************************************
+ * @brief  PID VOFA+调试  波特率1152000
+ * @param  None.
+ * @retval None.
+ ******************************************************************************/
+void pid_vofa_debug(void)
+{
+    char buf[256] = {0};
 
+#if 1 
+    sprintf(buf, "channels: %d,%d\r\n", \
+            m_motor_ctrl.m_spd.set_spd_val, 
+            m_motor_ctrl.m_spd.spd_val);
+    drv_uart_send_data(DEBUG_COM, (uint8_t *)buf, (uint16_t)strlen(buf));
+#endif
+
+#if 0 
+    sprintf(buf, "channels: %d,%d\r\n", \
+            m_iq_pid_unit.q15_target_value, 
+            m_iq_pid_unit.q15_actual_value);
+    drv_uart_send_data(HOST_COMPUTER_COM, (uint8_t *)buf, (uint16_t)strlen(buf));
+#endif
+}
 /* USER CODE END 4 */
 
 /**

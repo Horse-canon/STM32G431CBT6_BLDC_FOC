@@ -115,13 +115,13 @@ void m_current_pid_execute(void)
 	m_id_pid_unit.q15_target_value = 0;								//Id目标值固定为0
 	m_id_pid_unit.q15_actual_value = m_foc_unit.coordinate.q15_id;	//更新实时Id
 	/*Id电流环PID计算结果Ud：串联型PID*/
-	//m_foc_unit.coordinate.q15_ud = m_series_pid_algorithm(&m_id_pid_unit);
-	m_foc_unit.coordinate.q15_ud = m_parallel_incremental_pid_algorithm(&m_id_pid_unit);
+	m_foc_unit.coordinate.q15_ud = m_series_pid_algorithm(&m_id_pid_unit);
+	//m_foc_unit.coordinate.q15_ud = m_parallel_incremental_pid_algorithm(&m_id_pid_unit);
 
 	m_iq_pid_unit.q15_actual_value = m_foc_unit.coordinate.q15_iq;//更新实时Iq
 	/*Iq电流环PID计算结果Uq：串联型PID*/
-	//m_foc_unit.coordinate.q15_uq = m_series_pid_algorithm(&m_iq_pid_unit);
-	m_foc_unit.coordinate.q15_uq = m_parallel_incremental_pid_algorithm(&m_iq_pid_unit);
+	m_foc_unit.coordinate.q15_uq = m_series_pid_algorithm(&m_iq_pid_unit);
+	//m_foc_unit.coordinate.q15_uq = m_parallel_incremental_pid_algorithm(&m_iq_pid_unit);
 }
 
 uint32_t loop_cnt;
@@ -186,8 +186,8 @@ void m_spd_pid_execute(void)
 			m_spd_pid_unit.q15_target_value = m_motor_ctrl.m_spd.set_spd_val;
 			/*更新速度环实时值*/
 			m_spd_pid_unit.q15_actual_value = m_motor_ctrl.m_spd.spd_val;
-			//m_spd_pid_unit.q15_out_val = m_series_pid_algorithm(&m_spd_pid_unit);
-			m_spd_pid_unit.q15_out_val = m_parallel_incremental_pid_algorithm(&m_spd_pid_unit);
+			m_spd_pid_unit.q15_out_val = m_series_pid_algorithm(&m_spd_pid_unit);
+			//m_spd_pid_unit.q15_out_val = m_parallel_incremental_pid_algorithm(&m_spd_pid_unit);
 			switch(m_motor_ctrl.direction)
 			{
 				case CCW:

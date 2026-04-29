@@ -19,8 +19,8 @@ m_pid_unit_t m_spd_pid_unit;    //速度环pid
  ******************************************************************************/
 void m_current_pid_init(void)
 {
-    m_id_pid_unit.q16_kp = 32767;               //比例项系数
-    m_id_pid_unit.q16_ki = 2048;                //积分项系数
+    m_id_pid_unit.q16_kp = 32767;               //比例项系数 32767
+    m_id_pid_unit.q16_ki = 2048;                //积分项系数 2048
     m_id_pid_unit.q16_kd = 0;                   //微分项系数
     m_id_pid_unit.q15_out_val = 0;              //计算结果输出值
     m_id_pid_unit.q15_last_err = 0;             //上次误差值
@@ -31,8 +31,8 @@ void m_current_pid_init(void)
     m_id_pid_unit.q15_target_value = 0;         //PID实时目标值
     m_id_pid_unit.q15_actual_value = 0;         //PID实时反馈值
     
-    m_iq_pid_unit.q16_kp = 32767;               //比例项系数
-    m_iq_pid_unit.q16_ki = 2048;                //积分项系数
+    m_iq_pid_unit.q16_kp = 32767;               //比例项系数 32767
+    m_iq_pid_unit.q16_ki = 2048;                //积分项系数 2048
     m_iq_pid_unit.q16_kd = 0;                   //微分项系数
     m_iq_pid_unit.q15_out_val = 0;              //计算结果输出值
     m_iq_pid_unit.q15_last_err = 0;             //上次误差值

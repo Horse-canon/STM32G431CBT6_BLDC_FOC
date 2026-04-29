@@ -35,6 +35,7 @@
 #include "mcu_adc.h"
 #include "mcu_key.h"
 #include "string.h"
+#include "m_pid.h"
 
 /* USER CODE END Includes */
 
@@ -196,7 +197,7 @@ void pid_vofa_debug(void)
     sprintf(buf, "channels: %d,%d\r\n", \
             m_iq_pid_unit.q15_target_value, 
             m_iq_pid_unit.q15_actual_value);
-    drv_uart_send_data(HOST_COMPUTER_COM, (uint8_t *)buf, (uint16_t)strlen(buf));
+    drv_uart_send_data(DEBUG_COM, (uint8_t *)buf, (uint16_t)strlen(buf));
 #endif
 }
 /* USER CODE END 4 */

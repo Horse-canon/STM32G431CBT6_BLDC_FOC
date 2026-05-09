@@ -194,8 +194,10 @@ uint16_t m_rotor_angle_calculate(void)
         else
         {
             m_hall_unit.time = m_hall_unit.angle_60_time_filter2;   
-        }
-        
+        }  
+
+
+
         if (m_hall_unit.time <= MAX_SPEED_HALL_TIME_VALUE) //3000RPM 最高转速限幅   
         {               
             m_hall_unit.time = MAX_SPEED_HALL_TIME_VALUE;

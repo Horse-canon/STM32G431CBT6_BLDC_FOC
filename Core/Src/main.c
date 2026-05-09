@@ -64,6 +64,7 @@
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void pid_vofa_debug(void);
+void observer_vofa_debug(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -122,7 +123,8 @@ int main(void)
     m_us_radius_calculate();
     m_motor_execute_ctrl();
     drv_key_scan();
-    pid_vofa_debug();
+    observer_vofa_debug();
+    //pid_vofa_debug();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -184,7 +186,7 @@ void SystemClock_Config(void)
  ******************************************************************************/
 void pid_vofa_debug(void)
 {
-    char buf[256] = {0};
+  char buf[256] = {0};
 
 #if 1 
     sprintf(buf, "channels: %d,%d\r\n", \
@@ -199,6 +201,64 @@ void pid_vofa_debug(void)
             m_iq_pid_unit.q15_actual_value);
     drv_uart_send_data(DEBUG_COM, (uint8_t *)buf, (uint16_t)strlen(buf));
 #endif
+}
+
+/**
+  ******************************************************************************
+  * @brief  观测器 VOFA+调试   波特率1152000
+  * @param  None.
+  * @retval None.
+  ******************************************************************************/
+void observer_vofa_debug(void)
+{
+	char buf[256] = {0};
+
+#if 1  //Iq		
+		sprintf(buf, "channels: %d,%d,%d,%d,%d\r\n", \
+    m_iq_pid_unit.q15_target_value,
+    m_iq_pid_unit.q15_actual_value,
+    m_foc_unit.coordinate.q15_uq,
+    m_motor_ctrl.m_spd.set_spd_val, 
+    m_motor_ctrl.m_spd.spd_val
+    
+		);
+#endif
+
+#if 0  //δθ滤波前后角度变化比对		
+		sprintf(buf, "channels: %d,%d\r\n", \
+		m_obs_angle_unit.q15_delta_theta, \
+		m_obs_angle_unit.q15_filter_delta_theta
+		);
+#endif
+	
+#if 0  //α电流估算跟踪		
+		sprintf(buf, "channels: %d,%d\r\n", \
+		m_obs_unit.q15_i_alpha_estimate, \
+		m_foc_unit.coordinate.q15_i_alpha
+		);
+#endif
+		
+#if 0  //β电流估算跟踪		
+		sprintf(buf, "channels: %d,%d\r\n", \
+		m_obs_unit.q15_i_beta_estimate, \
+		m_foc_unit.coordinate.q15_i_beta \
+		);
+#endif
+
+#if 0	//估算θe eRPM跟踪
+		sprintf(buf, "channels: %d,%d\r\n", \
+		m_rotor_angle_unit.q15_theta_e,
+		m_rotor_angle_unit.q15_erpm
+		);
+#endif
+
+#if 0	//Eα Eβ反电动势估算跟踪
+		sprintf(buf, "channels: %d,%d\r\n", \
+		m_obs_unit.q15_e_alpha_final,
+		m_obs_unit.q15_e_beta_final
+		);
+#endif
+	drv_uart_send_data(DEBUG_COM, (uint8_t *)buf, strlen(buf));
 }
 /* USER CODE END 4 */
 

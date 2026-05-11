@@ -78,7 +78,7 @@ void m_us_radius_calculate(void)
 				m_motor_ctrl.direction = CCW;
 			}
 			dir_change_sign = false;  //切换完成
-			dir_change_stop_delay = 200;  //延时等待电机惯性停止（200次主循环 ≈ 200ms）
+			dir_change_stop_delay = 1000;  //延时等待电机惯性停止（1000次主循环 ≈ 1000ms）
 		}
 	}
 
@@ -261,16 +261,6 @@ void m_foc_algorithm_execute(void)
 			
 			/*第3步：电流Park变换（使用最新转子角度，确保Id/Iq估算准确）*/
 			m_park_transform(m_foc_unit.rotor_engle);
-			
-			/*启动阶段Iq实际值限幅：防止角度初始化误差导致Iq估算值剧烈跳动进入PID*/
-			if(m_motor_ctrl.m_spd.stabilize_sign == false)
-			{
-				int16_t iq_limit = 100;
-				if(m_foc_unit.coordinate.q15_iq > iq_limit)
-					m_foc_unit.coordinate.q15_iq = iq_limit;
-				else if(m_foc_unit.coordinate.q15_iq < -iq_limit)
-					m_foc_unit.coordinate.q15_iq = -iq_limit;
-			}
 			
 			/*第4步：电流环PID → 计算Ud/Uq（使用最新的Iq目标值和实际值）*/
 			m_current_pid_execute();

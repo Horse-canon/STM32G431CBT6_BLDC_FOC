@@ -117,11 +117,6 @@ void m_rotor_angle_init(void)
     m_hall_unit.hall_val_test_index = 0;
 }
 
-/* * [STM32 移植精简] 
- * 已经彻底删除原版低效的 m_custom_divide 和 m_custom_remainder。
- * STM32G4 拥有 Cortex-M4F 内核，我们将使用硬件 FPU 进行极速浮点除法运算。
- */
-
 /**
  ******************************************************************************
  * @brief  转子位置角计算：间隔50us进行一次计算 (完美融合 STM32 硬件霍尔中断)
@@ -179,34 +174,18 @@ uint16_t m_rotor_angle_calculate(void)
             m_hall_unit.angle_60_time_filter2 = LPF_CALC(m_hall_unit.angle_60_time_filter1, \
                                                          m_hall_unit.angle_60_time_filter2);
         }
-        
-        /* 4. 起步阶段与极限转速限幅保护 */
-        /* 电机运行初始阶段：霍尔捕获电角度值未到稳定状态 */
-        if(m_hall_unit.start_sign == true)
-        {
-            m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;//50RPM 最低转速对应60°电角度时间
-            if(m_hall_unit.start_cnt++ >= 10)
-            {
-                m_hall_unit.start_sign = false;
-            }
-        }
-        /* 霍尔捕获电角度值已到稳定状态 */
-        else
-        {
-            m_hall_unit.time = m_hall_unit.angle_60_time_filter2;   
-        }  
 
-
+        m_hall_unit.time = m_hall_unit.angle_60_time_filter2;   
 
         if (m_hall_unit.time <= MAX_SPEED_HALL_TIME_VALUE) //3000RPM 最高转速限幅   
         {               
             m_hall_unit.time = MAX_SPEED_HALL_TIME_VALUE;
         }
         
-        /* 5. 核心：计算每个 50us 控制周期的角度增量 (利用硬件 FPU 极速浮点除法) */
+        /* 正常捕获到时间：利用硬件 FPU 极速浮点除法计算增量和速度 */
         rotor_angle_inc.u32 = (uint32_t)((float)DθR_DIFF_VALUE / (float)m_hall_unit.time); 
         
-        /* 6. 计算当前实时转速供速度环使用 */
+        /* 此时 time 绝对不为 0，放心计算转速，绝对安全 */
         m_motor_ctrl.m_spd.spd_val = 60000000 / (m_hall_unit.time * 6 * MOTOR_POLE_PAIRS);
         
         if(m_motor_ctrl.m_spd.stabilize_cnt++ >= MOTOR_HALL_STABILIZE_NUMBER)

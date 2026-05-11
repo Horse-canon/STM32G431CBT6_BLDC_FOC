@@ -63,7 +63,7 @@ extern "C" {
 /* 电机极对数及范围设定 */
 #define MOTOR_POLE_PAIRS           2
 #define MOTOR_MIN_SPEED            300     //电机最小转速
-#define MOTOR_MAX_SPEED            2300    //电机最大转速 36BL61:2300  3650:6000
+#define MOTOR_MAX_SPEED            1200    //电机最大转速 36BL61:2300  3650:6000
 #define MIN_SPEED_HALL_TIME_VALUE  SPEED_HALL_TIME_CALCULATE(50, MOTOR_POLE_PAIRS, 1)
 #define MAX_SPEED_HALL_TIME_VALUE  SPEED_HALL_TIME_CALCULATE(MOTOR_MAX_SPEED, MOTOR_POLE_PAIRS, 1)
 
@@ -96,7 +96,7 @@ extern "C" {
 #define INC_SPD_RPM                             100              //斜坡转速递增步进        
 #define DEC_SPD_RPM                             100              //斜坡减速递减步进
 #define SET_IQ_MIN                              20               //最小Iq设定值 20
-#define START_IQ                                200              //启动运行阶段Iq 200
+#define START_IQ                                100              //启动运行阶段Iq 200
 
 #define MOTOR_HALL_STABILIZE_NUMBER             12               //电机霍尔传感器稳定检测阈值
 

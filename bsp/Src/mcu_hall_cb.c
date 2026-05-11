@@ -8,7 +8,7 @@
 typedef struct
 {
     uint32_t hall_capture_val; // 记录捕获到的定时器计数值（即 60° 电角度的时间差 Δt）
-    bool     hall_sign;  // 捕获更新标志位：true 表示发生了新的霍尔跳变
+    bool     hall_sign;        // 捕获更新标志位：true 表示发生了新的霍尔跳变
 } drv_hall_capture_t;
 
 /* 实例化内部捕获变量 */

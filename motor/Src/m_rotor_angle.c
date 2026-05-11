@@ -31,28 +31,7 @@ static union_u32 rotor_angle;
 static union_u32 rotor_angle_inc;
 static union_u32 monitor_rotor_angle;
 
-typedef struct
-{
-    uint8_t u_val;
-    uint8_t v_val;
-    uint8_t w_val;
-    
-    uint8_t value;
-    uint8_t value_last;
-    bool update_sign;
-    uint16_t update_cnt;
-    uint8_t start_cnt;
-    bool start_sign;
-    uint32_t time;
-    uint32_t time_last;
-    
-    uint32_t angle_60_time;
-    uint32_t angle_60_time_filter1;
-    uint32_t angle_60_time_filter2; 
-    
-    uint8_t hall_val_test_buf[6];
-    uint8_t hall_val_test_index;
-} m_hall_unit_t;
+
 
 m_hall_unit_t m_hall_unit;
 
@@ -106,6 +85,7 @@ void m_rotor_angle_init(void)
     m_hall_unit.angle_60_time_filter1 = 0;
     m_hall_unit.angle_60_time_filter2 = 0;
     m_hall_unit.start_cnt = 0;
+    
     
     hall_capture_unit.hall_capture_reset_func();
     m_hall_value_get();
@@ -163,7 +143,30 @@ uint16_t m_rotor_angle_calculate(void)
             hall_capture_unit.hall_capture_sign_clear_func();
             
             /* 直接更新电角度时间 */
-            m_hall_unit.angle_60_time = delta_time;
+            //m_hall_unit.angle_60_time = delta_time;
+
+            /* -------- 新增：丢弃起步不准的时间 -------- */
+            if (m_hall_unit.start_cnt < 1) 
+            {
+                m_hall_unit.start_cnt++;
+                delta_time = 0; // 强制抹掉这个不准的垃圾时间
+                m_hall_unit.angle_60_time = 0;
+                
+                /* 可以顺手清空一下滤波器缓存，防止垃圾值污染 */
+                m_hall_unit.angle_60_time_filter1 = 0;
+                m_hall_unit.angle_60_time_filter2 = 0;
+            }
+            else
+            {
+                /* 第 3 次跳变开始，终于跑满了完整的 60°，采用真实时间！ */
+                m_hall_unit.angle_60_time = delta_time;
+
+                if (m_hall_unit.angle_60_time_filter1 == 0)
+                {
+                    m_hall_unit.angle_60_time_filter1 = delta_time;
+                    m_hall_unit.angle_60_time_filter2 = delta_time;
+                }
+            }
         }
 
         /* 3. 对 60° 电角度时间进行双重低通滤波，消除机械震动与干扰 */
@@ -175,33 +178,47 @@ uint16_t m_rotor_angle_calculate(void)
                                                          m_hall_unit.angle_60_time_filter2);
         }
 
-         /* 4. 起步阶段与极限转速限幅保护 */
-        /* 电机运行初始阶段：霍尔捕获电角度值未到稳定状态 */
-        if(m_hall_unit.start_sign == true)
+        //  /* 4. 起步阶段与极限转速限幅保护 */
+        // /* 电机运行初始阶段：霍尔捕获电角度值未到稳定状态 */
+        // if(m_hall_unit.start_sign == true)
+        // {
+        //     m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;//50RPM 最低转速对应60°电角度时间
+        //     if(m_hall_unit.start_cnt++ >= 10)
+        //     {
+        //         m_hall_unit.start_sign = false;
+        //     }
+        // }
+        // /* 霍尔捕获电角度值已到稳定状态 */
+        // else
+        // {
+        //     m_hall_unit.time = m_hall_unit.angle_60_time_filter2;   
+        // }
+
+        m_hall_unit.time = m_hall_unit.angle_60_time_filter2;
+        
+        if (m_hall_unit.time == 0 || m_hall_unit.start_cnt < 1)
         {
-            m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;//50RPM 最低转速对应60°电角度时间
-            if(m_hall_unit.start_cnt++ >= 10)
-            {
-                m_hall_unit.start_sign = false;
-            }
+            /* 阶段一：静止瞬间，没有时间差，绝对不插值，保持阶梯波输出最大转矩 */
+            rotor_angle_inc.u32 = 0;
+            m_motor_ctrl.m_spd.spd_val = 0; // 真实转速为 0
         }
-        /* 霍尔捕获电角度值已到稳定状态 */
         else
         {
-            m_hall_unit.time = m_hall_unit.angle_60_time_filter2;   
+            /* 阶段二与阶段三：只要有了真实的时间差，立刻开启插值！无论速度环是否介入 */
+            
+            /* 极限转速限幅保护：防止分母过小或过大导致计算溢出 */
+            if(m_hall_unit.time <= MAX_SPEED_HALL_TIME_VALUE)
+                m_hall_unit.time = MAX_SPEED_HALL_TIME_VALUE;
+            if(m_hall_unit.time >= MIN_SPEED_HALL_TIME_VALUE)
+                m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;
+                
+            /* 极速浮点除法：算出完美的平滑步进角 */
+            rotor_angle_inc.u32 = (uint32_t)((float)DθR_DIFF_VALUE / (float)m_hall_unit.time);
+            
+            /* 计算实际绝对转速，供外部观测或速度环使用 */
+            m_motor_ctrl.m_spd.spd_val = 60000000 / (m_hall_unit.time * 6 * MOTOR_POLE_PAIRS);
         }
 
-        if (m_hall_unit.time <= MAX_SPEED_HALL_TIME_VALUE) //3000RPM 最高转速限幅   
-        {               
-            m_hall_unit.time = MAX_SPEED_HALL_TIME_VALUE;
-        }
-        
-        /* 正常捕获到时间：利用硬件 FPU 极速浮点除法计算增量和速度 */
-        rotor_angle_inc.u32 = (uint32_t)((float)DθR_DIFF_VALUE / (float)m_hall_unit.time); 
-        
-        /* 此时 time 绝对不为 0，放心计算转速，绝对安全 */
-        m_motor_ctrl.m_spd.spd_val = 60000000 / (m_hall_unit.time * 6 * MOTOR_POLE_PAIRS);
-        
         if(m_motor_ctrl.m_spd.stabilize_cnt++ >= MOTOR_HALL_STABILIZE_NUMBER)
         {
             m_motor_ctrl.m_spd.stabilize_cnt     = MOTOR_HALL_STABILIZE_NUMBER;

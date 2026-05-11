@@ -175,7 +175,21 @@ uint16_t m_rotor_angle_calculate(void)
                                                          m_hall_unit.angle_60_time_filter2);
         }
 
-        m_hall_unit.time = m_hall_unit.angle_60_time_filter2;   
+         /* 4. 起步阶段与极限转速限幅保护 */
+        /* 电机运行初始阶段：霍尔捕获电角度值未到稳定状态 */
+        if(m_hall_unit.start_sign == true)
+        {
+            m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;//50RPM 最低转速对应60°电角度时间
+            if(m_hall_unit.start_cnt++ >= 10)
+            {
+                m_hall_unit.start_sign = false;
+            }
+        }
+        /* 霍尔捕获电角度值已到稳定状态 */
+        else
+        {
+            m_hall_unit.time = m_hall_unit.angle_60_time_filter2;   
+        }
 
         if (m_hall_unit.time <= MAX_SPEED_HALL_TIME_VALUE) //3000RPM 最高转速限幅   
         {               

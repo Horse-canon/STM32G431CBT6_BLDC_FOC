@@ -144,7 +144,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
         /* 第4步：电流Clark变换 */
         m_clark_transform();		
 
-        /* 第5步：执行 FOC 核心控制算法（内含：角度更新→速度环→Park→电流环→SVPWM） */
+        /* 第5步：执行 FOC 核心控制算法（角度更新→速度环→Park→电流环→SVPWM） */
         m_foc_algorithm_execute();
         
         /* 第6步：系统时基滴答更新 */

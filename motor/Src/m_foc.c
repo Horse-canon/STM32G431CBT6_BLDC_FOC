@@ -186,8 +186,7 @@ void m_spd_pid_execute(void)
 			m_spd_pid_unit.q15_target_value = m_motor_ctrl.m_spd.set_spd_val;
 			/*更新速度环实时值*/
 			m_spd_pid_unit.q15_actual_value = m_motor_ctrl.m_spd.spd_val;
-			m_spd_pid_unit.q15_out_val = m_series_pid_algorithm(&m_spd_pid_unit);
-			//m_spd_pid_unit.q15_out_val = m_parallel_incremental_pid_algorithm(&m_spd_pid_unit);
+			m_spd_pid_unit.q15_out_val = m_parallel_incremental_pid_algorithm(&m_spd_pid_unit);
 			switch(m_motor_ctrl.direction)
 			{
 				case CCW:

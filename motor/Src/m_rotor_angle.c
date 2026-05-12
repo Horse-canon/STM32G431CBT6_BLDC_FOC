@@ -20,10 +20,15 @@
 
 
 
-//转子位置角解算表36BL61 3560
-static const uint16_t  ROTOR_ANGLE_TABLE_CCW[7]  = {0,EANGLE330,EANGLE210,EANGLE270,EANGLE90,EANGLE30,EANGLE150};
-static const uint16_t  ROTOR_ANGLE_TABLE_CW[7]   = {0,EANGLE30,EANGLE270,EANGLE330,EANGLE150,EANGLE90,EANGLE210};
-static const uint16_t  ROTOR_ANGLE_INIT_TABLE[7] = {0,EANGLE0,EANGLE240,EANGLE300,EANGLE120,EANGLE60,EANGLE180};
+// //转子位置角解算表36BL61 3560
+// static const uint16_t  ROTOR_ANGLE_TABLE_CCW[7]  = {0,EANGLE330,EANGLE210,EANGLE270,EANGLE90,EANGLE30,EANGLE150};
+// static const uint16_t  ROTOR_ANGLE_TABLE_CW[7]   = {0,EANGLE30,EANGLE270,EANGLE330,EANGLE150,EANGLE90,EANGLE210};
+// static const uint16_t  ROTOR_ANGLE_INIT_TABLE[7] = {0,EANGLE0,EANGLE240,EANGLE300,EANGLE120,EANGLE60,EANGLE180};
+
+//转子位置角解算表
+static const uint16_t  ROTOR_ANGLE_TABLE_CCW[7]  = {0,EANGLE240,EANGLE120,EANGLE180,EANGLE0,EANGLE300,EANGLE60};
+static const uint16_t  ROTOR_ANGLE_TABLE_CW[7]   = {0,EANGLE300,EANGLE180,EANGLE240,EANGLE60,EANGLE0,EANGLE120};
+static const uint16_t  ROTOR_ANGLE_INIT_TABLE[7] = {0,EANGLE270,EANGLE150,EANGLE210,EANGLE30,EANGLE330,EANGLE90};
 
 
 
@@ -31,28 +36,7 @@ static union_u32 rotor_angle;
 static union_u32 rotor_angle_inc;
 static union_u32 monitor_rotor_angle;
 
-typedef struct
-{
-    uint8_t u_val;
-    uint8_t v_val;
-    uint8_t w_val;
-    
-    uint8_t value;
-    uint8_t value_last;
-    bool update_sign;
-    uint16_t update_cnt;
-    uint8_t start_cnt;
-    bool start_sign;
-    uint32_t time;
-    uint32_t time_last;
-    
-    uint32_t angle_60_time;
-    uint32_t angle_60_time_filter1;
-    uint32_t angle_60_time_filter2; 
-    
-    uint8_t hall_val_test_buf[6];
-    uint8_t hall_val_test_index;
-} m_hall_unit_t;
+
 
 m_hall_unit_t m_hall_unit;
 
@@ -179,22 +163,8 @@ uint16_t m_rotor_angle_calculate(void)
             m_hall_unit.angle_60_time_filter2 = LPF_CALC(m_hall_unit.angle_60_time_filter1, \
                                                          m_hall_unit.angle_60_time_filter2);
         }
-        
-        /* 4. 起步阶段与极限转速限幅保护 */
-        /* 电机运行初始阶段：霍尔捕获电角度值未到稳定状态 */
-        if(m_hall_unit.start_sign == true)
-        {
-            m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;//50RPM 最低转速对应60°电角度时间
-            if(m_hall_unit.start_cnt++ >= 10)
-            {
-                m_hall_unit.start_sign = false;
-            }
-        }
-        /* 霍尔捕获电角度值已到稳定状态 */
-        else
-        {
-            m_hall_unit.time = m_hall_unit.angle_60_time_filter2;   
-        }
+
+        m_hall_unit.time = m_hall_unit.angle_60_time_filter2;
         
         if (m_hall_unit.time <= MAX_SPEED_HALL_TIME_VALUE) //3000RPM 最高转速限幅   
         {               

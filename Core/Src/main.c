@@ -124,6 +124,9 @@ int main(void)
     m_us_radius_calculate();
     m_motor_execute_ctrl();
     drv_key_scan();
+    // m_hall_value_get();
+    // printf("hall value: %d\r\n", m_hall_unit.value);
+
     observer_vofa_debug();
     //pid_vofa_debug();
     /* USER CODE END WHILE */

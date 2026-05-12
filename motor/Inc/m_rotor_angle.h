@@ -39,6 +39,7 @@ extern m_hall_unit_t m_hall_unit;
 
 void m_rotor_angle_init(void);
 uint16_t m_rotor_angle_calculate(void);
+void m_hall_value_get(void);
 
 #ifdef __cplusplus
 }

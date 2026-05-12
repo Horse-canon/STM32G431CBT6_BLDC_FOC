@@ -14,6 +14,7 @@ typedef enum
     EXECUTE_MOTOR_STOP,                // 电机停止
     EXECUTE_MOTOR_START,               // 电机启动
     EXECUTE_MOTOR_BOOST_CHARGING,      // 等待充电
+    EXECUTE_MOTOR_ALIGNMENT_TEST,      // 霍尔静态锁死测表模式
     //EXECUTE_MOTOR_OPEN_LOOP,		//电机开环执行  test code
     EXECUTE_MOTOR_EXECUTE,             // 电机执行
 } motor_execute_state_machine_e;

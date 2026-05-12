@@ -248,9 +248,45 @@ void m_foc_algorithm_execute(void)
 				m_current_pid_init(); 	//电流环PID初始化
 				m_spd_pid_init(); 		//速度环PID初始化	
 				m_motor_ctrl.state_machine = EXECUTE_MOTOR_EXECUTE;
+				//m_motor_ctrl.state_machine = EXECUTE_MOTOR_ALIGNMENT_TEST;
 			}
 		}
 		break;
+
+		/* ======================================================= */
+        /* 2. 🌟 增加全新、纯净的测试状态专属逻辑 */
+        /* ======================================================= */
+        case EXECUTE_MOTOR_ALIGNMENT_TEST: // 霍尔对齐测试专属状态
+        {
+            /* 1. 强行设定定子磁场绝对电角度 */
+            /* 每次烧录前依次修改这里: EANGLE0, EANGLE60, EANGLE120... */
+            m_foc_unit.rotor_engle = EANGLE0; 
+
+            /* 2. 强行施加 D轴开环强电压，彻底抛弃 PID 与 ADC 的干扰！ */
+            m_foc_unit.coordinate.q15_ud = 25000; // D轴开环电压 (范围 0~32767，根据发热和锁死力度调整)
+            m_foc_unit.coordinate.q15_uq = 0;    // Q轴电压绝对为 0
+            
+            /* 3. 直接通过 Ud Uq 进行 Us模长计算以及超前角计算 */
+            m_us_theta_c_calculate();
+            
+            /* 4. 绝对坐标换算 */
+            switch(m_motor_ctrl.direction)
+            {
+                case CCW:
+                    m_foc_unit.q_engle = m_foc_unit.rotor_engle + EANGLE90 + m_foc_unit.advance_angle;
+                break;
+                case CW:
+                    m_foc_unit.q_engle = m_foc_unit.rotor_engle - EANGLE90 - m_foc_unit.advance_angle;
+                break;
+            }
+            
+            /* 5. 将计算出的模长赋予 M 值，输出 SVPWM 将转子死死锁住！ */
+            m_us_unit.q16_m_value = m_foc_unit.q16_us;
+            m_svpwm_generate(m_us_unit.q16_m_value, m_foc_unit.q_engle);
+
+        }
+        break;
+
 		case EXECUTE_MOTOR_EXECUTE:	//电机执行
 		{
 			/*第1步：转子位置角计算（使用最新霍尔信号）*/
@@ -265,16 +301,16 @@ void m_foc_algorithm_execute(void)
 			/*启动阶段Iq实际值限幅：防止角度初始化误差导致Iq估算值剧烈跳动进入PID*/
 			if(m_motor_ctrl.m_spd.stabilize_sign == false)
 			{
-				int16_t iq_limit = 300;
+				int16_t iq_limit = 400;
 				if(m_foc_unit.coordinate.q15_iq > iq_limit)
 					m_foc_unit.coordinate.q15_iq = iq_limit;
 				else if(m_foc_unit.coordinate.q15_iq < -iq_limit)
 					m_foc_unit.coordinate.q15_iq = -iq_limit;
 				
-				m_iq_pid_unit.q16_kp = 8000;
-				m_id_pid_unit.q16_kp = 8000;
-				m_iq_pid_unit.q16_ki = 1000;
-                m_id_pid_unit.q16_ki = 1000;
+				m_iq_pid_unit.q16_kp = 10000;
+				m_id_pid_unit.q16_kp = 10000;
+				m_iq_pid_unit.q16_ki = 500;
+                m_id_pid_unit.q16_ki = 500;
 			}
 			else
 			{

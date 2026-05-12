@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <string.h>
 
+/* 添加外部定时器句柄引用 */
+extern TIM_HandleTypeDef htim3;
+
 typedef struct
 {
     uint32_t hall_capture_val; // 记录捕获到的定时器计数值（即 60° 电角度的时间差 Δt）
@@ -42,7 +45,17 @@ static void drv_hall_capture_sign_clear(void)
  */
 static void drv_hall_capture_reset(void)
 {
+    //memset(&drv_hall_capture, 0, sizeof(drv_hall_capture));
+
+    /* 1. 清空软件标志位 */
     memset(&drv_hall_capture, 0, sizeof(drv_hall_capture));
+    
+    /* 2. 彻底清理硬件定时器的“历史遗留” */
+    /* 清除捕获中断标志位，防止一开启就触发停机残留的假中断 */
+    __HAL_TIM_CLEAR_IT(&htim3, TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_UPDATE);
+    
+    /* 复位计数器，防止带有超长停机时间的垃圾值干扰测速 */
+    __HAL_TIM_SET_COUNTER(&htim3, 0);
 }
 
 /**

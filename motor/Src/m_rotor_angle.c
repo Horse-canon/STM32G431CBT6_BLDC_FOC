@@ -89,6 +89,11 @@ void m_rotor_angle_init(void)
     
     hall_capture_unit.hall_capture_reset_func();
     m_hall_value_get();
+
+    /* -------- 🌟 修复点：强制清除上电首次读取造成的假跳变标志 -------- */
+    m_hall_unit.update_sign = false; 
+    /* ---------------------------------------------------------------- */
+
     rotor_angle_inc.u32 = 0;
     
     /* 统一使用标准 32 位数据格式，舍弃对底层非原生的增强宏 */
@@ -145,22 +150,25 @@ uint16_t m_rotor_angle_calculate(void)
             /* 直接更新电角度时间 */
             //m_hall_unit.angle_60_time = delta_time;
 
-            /* -------- 新增：丢弃起步不准的时间 -------- */
-            if (m_hall_unit.start_cnt < 1) 
+           /* -------- 核心修改：第一次丢弃，第二次立刻启用 -------- */
+            if (m_hall_unit.start_cnt == 0) 
             {
+                /* 发生第 1 次跳变：距离残缺，真实时间作废 */
                 m_hall_unit.start_cnt++;
-                delta_time = 0; // 强制抹掉这个不准的垃圾时间
+                delta_time = 0; 
                 m_hall_unit.angle_60_time = 0;
                 
-                /* 可以顺手清空一下滤波器缓存，防止垃圾值污染 */
                 m_hall_unit.angle_60_time_filter1 = 0;
                 m_hall_unit.angle_60_time_filter2 = 0;
             }
             else
             {
-                /* 第 3 次跳变开始，终于跑满了完整的 60°，采用真实时间！ */
+                /* 发生第 2 次及以后的跳变：跑满了完整 60°，时间绝对真实！ */
+                if(m_hall_unit.start_cnt < 255) m_hall_unit.start_cnt++; // 防止溢出
+                
                 m_hall_unit.angle_60_time = delta_time;
 
+                /* 滤波器种子初始化：防止初始测速被 0 拖后腿 */
                 if (m_hall_unit.angle_60_time_filter1 == 0)
                 {
                     m_hall_unit.angle_60_time_filter1 = delta_time;
@@ -196,26 +204,34 @@ uint16_t m_rotor_angle_calculate(void)
 
         m_hall_unit.time = m_hall_unit.angle_60_time_filter2;
         
-        if (m_hall_unit.time == 0 || m_hall_unit.start_cnt < 1)
+/* -------- 核心修改：三段式起步策略 -------- */
+        if (m_hall_unit.start_cnt == 0)
         {
-            /* 阶段一：静止瞬间，没有时间差，绝对不插值，保持阶梯波输出最大转矩 */
+            /* 阶段一 (刚通电，未跳变)：
+               死锁在扇区中点，提供最大恒定推力，绝不插值 */
             rotor_angle_inc.u32 = 0;
-            m_motor_ctrl.m_spd.spd_val = 0; // 真实转速为 0
+            m_motor_ctrl.m_spd.spd_val = 0; 
+        }
+        else if (m_hall_unit.start_cnt == 1)
+        {
+            /* 阶段二 (第 1 次跳变后，等待第 2 次跳变)：
+               为了防止磁场死锁导致 Iq 回落，人为给定一个恒定的低速插值步长！ */
+            m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE; // 使用设定的最低转速(如50RPM)
+            rotor_angle_inc.u32 = (uint32_t)((float)DθR_DIFF_VALUE / (float)m_hall_unit.time);
+            
+            /* 注意：虽然给定了假插值，但反馈给速度环的真实速度依然保持为 0，防止 PID 干扰起步 */
+            m_motor_ctrl.m_spd.spd_val = 0; 
         }
         else
         {
-            /* 阶段二与阶段三：只要有了真实的时间差，立刻开启插值！无论速度环是否介入 */
-            
-            /* 极限转速限幅保护：防止分母过小或过大导致计算溢出 */
+            /* 阶段三 (第 2 次跳变及以后)：
+               拥有了真实的 60 度时间，接入真实时间，丝滑闭环插值！ */
             if(m_hall_unit.time <= MAX_SPEED_HALL_TIME_VALUE)
                 m_hall_unit.time = MAX_SPEED_HALL_TIME_VALUE;
             if(m_hall_unit.time >= MIN_SPEED_HALL_TIME_VALUE)
                 m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;
                 
-            /* 极速浮点除法：算出完美的平滑步进角 */
             rotor_angle_inc.u32 = (uint32_t)((float)DθR_DIFF_VALUE / (float)m_hall_unit.time);
-            
-            /* 计算实际绝对转速，供外部观测或速度环使用 */
             m_motor_ctrl.m_spd.spd_val = 60000000 / (m_hall_unit.time * 6 * MOTOR_POLE_PAIRS);
         }
 

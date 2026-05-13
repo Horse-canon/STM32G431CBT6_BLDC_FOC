@@ -37,6 +37,8 @@ void m_us_sector_calculate(uint16_t theta)
     else if ((theta >= EANGLE180) && (theta < EANGLE240))   m_svpwm_unit.sector = 4;
     else if ((theta >= EANGLE240) && (theta < EANGLE300))   m_svpwm_unit.sector = 5;
     else                                                    m_svpwm_unit.sector = 6;
+
+    //printf("theta: %d, sector: %d\r\n", theta, m_svpwm_unit.sector);
 }
 
 /**
@@ -116,6 +118,8 @@ void m_taout_tbout_tcout_calculate(void)
     m_svpwm_unit.q16_tc_out = (MCU_PWM_TIMER_ARR - v1t - v2t) >> 1;  //tcout:(T/2 - ta/2 - tb / 2) / 2
     m_svpwm_unit.q16_tb_out = m_svpwm_unit.q16_tc_out + v2t;  //tbout = tcout + tb/2
     m_svpwm_unit.q16_ta_out = m_svpwm_unit.q16_tb_out + v1t;  //taout = tbout + ta/2
+
+    //printf("taout: %d, tbout: %d, tcout: %d\r\n", m_svpwm_unit.q16_ta_out, m_svpwm_unit.q16_tb_out, m_svpwm_unit.q16_tc_out);
 }
 
 /**

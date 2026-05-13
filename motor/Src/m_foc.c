@@ -145,7 +145,10 @@ void m_foc_algorithm_execute(void)
             }
             
             /* 执行 SVPWM 空间矢量脉宽调制 */
-            m_svpwm_generate(m_us_unit.q16_m_value, m_foc_unit.q_engle);
+            //m_svpwm_generate(m_us_unit.q16_m_value, m_foc_unit.q_engle);
+
+			/* 执行 SVPWM 空间矢量脉宽调制 */
+            m_svpwm_generate(12000, EANGLE330);
         }
         break;
     }

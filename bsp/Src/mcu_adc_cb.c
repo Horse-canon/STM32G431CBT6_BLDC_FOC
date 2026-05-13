@@ -7,6 +7,7 @@
   ******************************************************************************
   */
 #include "mcu_adc_cb.h"
+#include <stdint.h>
 #include <stdio.h>
 #include "m_tick.h"
 #include "typedef_header.h"
@@ -25,13 +26,26 @@ adc_unit_t adc_unit;
   */
 void drv_adc0_sample(void)
 {
+    int16_t u_current, v_current, w_current;
     /* 1. 读取 ADC1 注入组：U、V、W相电流 */
     adc_unit.u_current.instant_value = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
     adc_unit.v_current.instant_value = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_2);
     adc_unit.w_current.instant_value = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_3);
+
+    u_current = adc_unit.u_current.instant_value - 2048 + 67;
+    v_current = adc_unit.v_current.instant_value - 2048 + 67;
+    w_current = adc_unit.w_current.instant_value - 2048 + 67;
+
+
+    // u_current = ((float)adc_unit.u_current.instant_value / 4085.0f * 3.3f - 1.65f) / 50.0f /0.01;
+    // v_current = ((float)adc_unit.v_current.instant_value / 4085.0f * 3.3f - 1.65f) / 50.0f /0.01;
+    // w_current = ((float)adc_unit.w_current.instant_value / 4085.0f * 3.3f - 1.65f) / 50.0f /0.01;
+    
+    printf("u_current: %d, v_current: %d, w_current: %d\r\n", u_current, v_current, w_current);
     
     /* 2. 读取 ADC2 注入组：母线电压 */
     adc_unit.bus_voltage.instant_value = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+    adc_unit.bus_voltage.instant_value = (float)adc_unit.bus_voltage.instant_value / 4085.0f;
     
     adc_unit.adc0_cb_sign = true;
 }

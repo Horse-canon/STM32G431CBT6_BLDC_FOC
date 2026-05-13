@@ -20,15 +20,15 @@
 
 
 
-// //转子位置角解算表36BL61 3560
-// static const uint16_t  ROTOR_ANGLE_TABLE_CCW[7]  = {0,EANGLE330,EANGLE210,EANGLE270,EANGLE90,EANGLE30,EANGLE150};
-// static const uint16_t  ROTOR_ANGLE_TABLE_CW[7]   = {0,EANGLE30,EANGLE270,EANGLE330,EANGLE150,EANGLE90,EANGLE210};
-// static const uint16_t  ROTOR_ANGLE_INIT_TABLE[7] = {0,EANGLE0,EANGLE240,EANGLE300,EANGLE120,EANGLE60,EANGLE180};
+//转子位置角解算表36BL61 3560
+static const uint16_t  ROTOR_ANGLE_TABLE_CCW[7]  = {0,EANGLE330,EANGLE210,EANGLE270,EANGLE90,EANGLE30,EANGLE150};
+static const uint16_t  ROTOR_ANGLE_TABLE_CW[7]   = {0,EANGLE30,EANGLE270,EANGLE330,EANGLE150,EANGLE90,EANGLE210};
+static const uint16_t  ROTOR_ANGLE_INIT_TABLE[7] = {0,EANGLE0,EANGLE240,EANGLE300,EANGLE120,EANGLE60,EANGLE180};
 
-//转子位置角解算表
-static const uint16_t  ROTOR_ANGLE_TABLE_CCW[7]  = {0,EANGLE240,EANGLE120,EANGLE180,EANGLE0,EANGLE300,EANGLE60};
-static const uint16_t  ROTOR_ANGLE_TABLE_CW[7]   = {0,EANGLE300,EANGLE180,EANGLE240,EANGLE60,EANGLE0,EANGLE120};
-static const uint16_t  ROTOR_ANGLE_INIT_TABLE[7] = {0,EANGLE270,EANGLE150,EANGLE210,EANGLE30,EANGLE330,EANGLE90};
+// //转子位置角解算表
+// static const uint16_t  ROTOR_ANGLE_TABLE_CCW[7]  = {0,EANGLE240,EANGLE120,EANGLE180,EANGLE0,EANGLE300,EANGLE60};
+// static const uint16_t  ROTOR_ANGLE_TABLE_CW[7]   = {0,EANGLE300,EANGLE180,EANGLE240,EANGLE60,EANGLE0,EANGLE120};
+// static const uint16_t  ROTOR_ANGLE_INIT_TABLE[7] = {0,EANGLE270,EANGLE150,EANGLE210,EANGLE30,EANGLE330,EANGLE90};
 
 
 static union_u32 rotor_angle;
@@ -189,22 +189,6 @@ uint16_t m_rotor_angle_calculate(void)
             m_hall_unit.angle_60_time_filter2 = LPF_CALC(m_hall_unit.angle_60_time_filter1, \
                                                          m_hall_unit.angle_60_time_filter2);
         }
-
-        //  /* 4. 起步阶段与极限转速限幅保护 */
-        // /* 电机运行初始阶段：霍尔捕获电角度值未到稳定状态 */
-        // if(m_hall_unit.start_sign == true)
-        // {
-        //     m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;//50RPM 最低转速对应60°电角度时间
-        //     if(m_hall_unit.start_cnt++ >= 10)
-        //     {
-        //         m_hall_unit.start_sign = false;
-        //     }
-        // }
-        // /* 霍尔捕获电角度值已到稳定状态 */
-        // else
-        // {
-        //     m_hall_unit.time = m_hall_unit.angle_60_time_filter2;   
-        // }
 
         m_hall_unit.time = m_hall_unit.angle_60_time_filter2;
         

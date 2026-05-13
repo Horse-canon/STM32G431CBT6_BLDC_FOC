@@ -300,17 +300,11 @@ void m_foc_algorithm_execute(void)
 			
 			/*启动阶段Iq实际值限幅：防止角度初始化误差导致Iq估算值剧烈跳动进入PID*/
 			if(m_motor_ctrl.m_spd.stabilize_sign == false)
-			{
-				int16_t iq_limit = 400;
-				if(m_foc_unit.coordinate.q15_iq > iq_limit)
-					m_foc_unit.coordinate.q15_iq = iq_limit;
-				else if(m_foc_unit.coordinate.q15_iq < -iq_limit)
-					m_foc_unit.coordinate.q15_iq = -iq_limit;
-				
-				m_iq_pid_unit.q16_kp = 10000;
-				m_id_pid_unit.q16_kp = 10000;
-				m_iq_pid_unit.q16_ki = 500;
-                m_id_pid_unit.q16_ki = 500;
+			{	  
+				m_iq_pid_unit.q16_kp = 8000;
+				m_id_pid_unit.q16_kp = 8000;
+				m_iq_pid_unit.q16_ki = 1200;   
+                m_id_pid_unit.q16_ki = 1200;
 			}
 			else
 			{

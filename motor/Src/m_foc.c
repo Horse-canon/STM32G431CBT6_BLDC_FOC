@@ -110,6 +110,7 @@ void m_us_radius_calculate(void)
 			q16_spd_val = (q16_spd_val > MOTOR_MAX_SPEED)?MOTOR_MAX_SPEED:q16_spd_val;
 				
 			m_motor_ctrl.q16_spd_val = q16_spd_val;
+			//m_motor_ctrl.q16_spd_val = 300;
 		}
 	}
 }
@@ -127,11 +128,11 @@ void m_current_pid_execute(void)
 	m_id_pid_unit.q15_target_value = 0;								//Id目标值固定为0
 	m_id_pid_unit.q15_actual_value = m_foc_unit.coordinate.q15_id;	//更新实时Id
 	/*Id电流环PID计算结果Ud：串联型PID*/
-	m_foc_unit.coordinate.q15_ud = m_series_pid_algorithm(&m_id_pid_unit);
+	m_foc_unit.coordinate.q15_ud =  m_series_pid_algorithm(&m_id_pid_unit);
 
 	m_iq_pid_unit.q15_actual_value = m_foc_unit.coordinate.q15_iq;//更新实时Iq
 	/*Iq电流环PID计算结果Uq：串联型PID*/
-	m_foc_unit.coordinate.q15_uq = m_series_pid_algorithm(&m_iq_pid_unit);
+	m_foc_unit.coordinate.q15_uq =  m_series_pid_algorithm(&m_iq_pid_unit);
 }
 
 uint32_t loop_cnt;
@@ -199,6 +200,24 @@ void m_spd_pid_execute(void)
 			m_spd_pid_unit.q15_out_val = m_series_pid_algorithm(&m_spd_pid_unit);
 			switch(m_motor_ctrl.direction)
 			{
+				// case CCW:
+				// if(m_spd_pid_unit.q15_out_val > 0)
+				// {
+				// 	m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
+				// }else
+				// {
+				// 	m_iq_pid_unit.q15_target_value = 0;
+				// }
+				// break;
+				// case CW:
+				// if(m_spd_pid_unit.q15_out_val < 0)
+				// {
+				// 	m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
+				// }else
+				// {
+				// 	m_iq_pid_unit.q15_target_value = 0;
+				// }
+				// break;
 				case CCW:
 						m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
 				break;
@@ -301,10 +320,14 @@ void m_foc_algorithm_execute(void)
 			/*启动阶段Iq实际值限幅：防止角度初始化误差导致Iq估算值剧烈跳动进入PID*/
 			if(m_motor_ctrl.m_spd.stabilize_sign == false)
 			{	  
-				m_iq_pid_unit.q16_kp = 8000;
-				m_id_pid_unit.q16_kp = 8000;
-				m_iq_pid_unit.q16_ki = 1200;   
-                m_id_pid_unit.q16_ki = 1200;
+				m_iq_pid_unit.q16_kp = 5000;
+				m_id_pid_unit.q16_kp = 5000;
+				m_iq_pid_unit.q16_ki = 100;   //2300
+                m_id_pid_unit.q16_ki = 100;   //2300
+				// m_iq_pid_unit.q16_kp = 5000;
+				// m_id_pid_unit.q16_kp = 5000;
+				// m_iq_pid_unit.q16_ki = 2300;  
+                // m_id_pid_unit.q16_ki = 2300; 
 			}
 			else
 			{

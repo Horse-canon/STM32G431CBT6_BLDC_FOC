@@ -226,6 +226,7 @@ uint16_t m_rotor_angle_calculate(void)
         if(m_motor_ctrl.m_spd.stabilize_cnt++ >= MOTOR_HALL_STABILIZE_NUMBER)
         {
             m_motor_ctrl.m_spd.stabilize_cnt     = MOTOR_HALL_STABILIZE_NUMBER;
+            //m_motor_ctrl.m_spd.stabilize_sign    = true;    // 速度计算达到稳定标记
             m_motor_ctrl.m_spd.stabilize_sign    = true;    // 速度计算达到稳定标记
             m_motor_ctrl.m_spd.speed_update_sign = true;    // 触发速度环 PID 运算
         }

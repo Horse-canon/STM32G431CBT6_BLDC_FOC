@@ -124,6 +124,7 @@ int main(void)
     m_us_radius_calculate();
     m_motor_execute_ctrl();
     drv_key_scan();
+    //printf("%d %d %d\r\n", m_foc_unit.coordinate.q15_ud, m_id_pid_unit.q15_actual_value,m_id_pid_unit.q15_target_value);
     // m_hall_value_get();
     // printf("hall value: %d\r\n", m_hall_unit.value);
 
@@ -219,9 +220,10 @@ void observer_vofa_debug(void)
 
 #if 1  //Iq		
     float angle_deg = (float) m_foc_unit.rotor_engle / 10922.0f;
-		sprintf(buf, "channels: %d,%d,%d,%f,%d,%d\r\n", \
+		sprintf(buf, "channels: %d,%d,%d,%d,%f,%d,%d\r\n", \
     m_iq_pid_unit.q15_target_value,
     m_iq_pid_unit.q15_actual_value,
+    m_id_pid_unit.q15_actual_value,
     m_hall_unit.value,
     angle_deg,
     //m_foc_unit.coordinate.q15_uq,

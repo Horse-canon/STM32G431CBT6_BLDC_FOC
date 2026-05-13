@@ -24,6 +24,9 @@ extern "C" {
  */
 #define LPF_CALC(Xin, Yout)     ((Yout>>1) + (Yout>>2) + (Xin>>2))  
 
+/* CLAMP 宏：将值限制在 min 和 max 之间 */
+#define CLAMP(x, min, max)     (((x) < (min)) ? (min) : (((x) > (max)) ? (max) : (x)))  
+
 /* 32位无符号整数与16位高低字的联合体转换 */
 typedef union
 {

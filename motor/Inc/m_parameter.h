@@ -96,7 +96,7 @@ extern "C" {
 #define INC_SPD_RPM                             100              //斜坡转速递增步进        
 #define DEC_SPD_RPM                             100              //斜坡减速递减步进
 #define SET_IQ_MIN                              20               //最小Iq设定值 20
-#define START_IQ                                500              //启动运行阶段Iq 800
+#define START_IQ                                100              //启动运行阶段Iq 800
 
 #define MOTOR_HALL_STABILIZE_NUMBER             12               //电机霍尔传感器稳定检测阈值
 

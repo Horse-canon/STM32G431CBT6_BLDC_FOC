@@ -271,44 +271,43 @@ void m_foc_algorithm_execute(void)
 				m_rotor_angle_init();	//转子位置角初始化
 				m_current_pid_init(); 	//电流环PID初始化
 				m_spd_pid_init(); 		//速度环PID初始化	
-				m_motor_ctrl.state_machine = EXECUTE_MOTOR_EXECUTE;
-				//m_motor_ctrl.state_machine = EXECUTE_MOTOR_ALIGNMENT_TEST;
+				//m_motor_ctrl.state_machine = EXECUTE_MOTOR_EXECUTE;
+				m_motor_ctrl.state_machine = EXECUTE_MOTOR_ALIGNMENT_TEST;
 			}
 		}
 		break;
 
-		/* ======================================================= */
-        /* 2. 🌟 增加全新、纯净的测试状态专属逻辑 */
-        /* ======================================================= */
-        case EXECUTE_MOTOR_ALIGNMENT_TEST: // 霍尔对齐测试专属状态
+		case EXECUTE_MOTOR_ALIGNMENT_TEST:
         {
-            /* 1. 强行设定定子磁场绝对电角度 */
-            /* 每次烧录前依次修改这里: EANGLE0, EANGLE60, EANGLE120... */
-            m_foc_unit.rotor_engle = EANGLE60; 
+			// static const uint16_t SIX_STEP_ANGLE_CCW[7] = {
+			// 	0, EANGLE120, EANGLE0, EANGLE60, EANGLE240, EANGLE180, EANGLE300
+			// };
+			// static const uint16_t SIX_STEP_ANGLE_CW[7] = {
+			// 	0, EANGLE240, EANGLE120, EANGLE180, EANGLE0, EANGLE300, EANGLE60
+			// };
 
-            /* 2. 强行施加 D轴开环强电压，彻底抛弃 PID 与 ADC 的干扰！ */
-            m_foc_unit.coordinate.q15_ud = 5000; // D轴开环电压 (范围 0~32767，根据发热和锁死力度调整)
-            m_foc_unit.coordinate.q15_uq = 0;    // Q轴电压绝对为 0
-            
-            /* 3. 直接通过 Ud Uq 进行 Us模长计算以及超前角计算 */
-            m_us_theta_c_calculate();
-            
-            /* 4. 绝对坐标换算 */
-            switch(m_motor_ctrl.direction)
-            {
-                case CCW:
-                    m_foc_unit.q_engle = m_foc_unit.rotor_engle + EANGLE90 + m_foc_unit.advance_angle;
-                break;
-                case CW:
-                    m_foc_unit.q_engle = m_foc_unit.rotor_engle - EANGLE90 - m_foc_unit.advance_angle;
-                break;
-            }
-            
-            /* 5. 将计算出的模长赋予 M 值，输出 SVPWM 将转子死死锁住！ */
-            m_us_unit.q16_m_value = m_foc_unit.q16_us;
-            m_svpwm_generate(m_us_unit.q16_m_value, m_foc_unit.q_engle);
-			
+            m_hall_value_get();
+			// printf("hall value: %d\r\n", m_hall_unit.value);
 
+			// if (m_hall_unit.value >= 1 && m_hall_unit.value <= 6)
+			// {
+			// 	uint16_t drive_angle;
+			// 	switch (m_motor_ctrl.direction)
+			// 	{
+			// 		case CCW:
+			// 			drive_angle = SIX_STEP_ANGLE_CCW[m_hall_unit.value];
+			// 		break;
+			// 		case CW:
+			// 			drive_angle = SIX_STEP_ANGLE_CW[m_hall_unit.value];
+			// 		break;
+			// 	}
+			// 	m_svpwm_generate(20000, drive_angle);
+			// }
+
+			static uint16_t drive_angle = 0;
+			m_svpwm_generate(20000, drive_angle);
+			drive_angle += 50;
+			printf("drive_angle: %d, hall: %d\r\n", drive_angle, m_hall_unit.value);
         }
         break;
 
@@ -360,7 +359,7 @@ void m_foc_algorithm_execute(void)
 			}
 			/*将电流闭环计算的Us模长幅值到M值，也就是矢量圆的半径*/
 			m_us_unit.q16_m_value = m_foc_unit.q16_us;
-			m_svpwm_generate(m_us_unit.q16_m_value, m_foc_unit.q_engle);
+			// m_svpwm_generate(m_us_unit.q16_m_value, m_foc_unit.q_engle);
 		}
 		break;
 	}

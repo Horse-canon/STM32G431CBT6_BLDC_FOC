@@ -188,6 +188,8 @@ void m_svpwm_duty_calculate(uint16_t us_m)
     uint16_t ccr_u = MCU_PWM_TIMER_ARR  - m_svpwm_unit.u_duty_value;
     uint16_t ccr_v = MCU_PWM_TIMER_ARR - m_svpwm_unit.v_duty_value;
     uint16_t ccr_w = MCU_PWM_TIMER_ARR - m_svpwm_unit.w_duty_value;
+
+   // printf("ccr_u: %d, ccr_v: %d, ccr_w: %d\r\n", ccr_u, ccr_v, ccr_w);
     
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, ccr_u);
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, ccr_v);

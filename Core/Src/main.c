@@ -37,6 +37,7 @@
 #include "string.h"
 #include "m_pid.h"
 #include "m_rotor_angle.h"
+#include "m_svpwm.h"
 
 /* USER CODE END Includes */
 
@@ -125,10 +126,33 @@ int main(void)
     m_motor_execute_ctrl();
     drv_key_scan();
     //printf("%d %d %d\r\n", m_foc_unit.coordinate.q15_ud, m_id_pid_unit.q15_actual_value,m_id_pid_unit.q15_target_value);
-    //m_hall_value_get();
-    //printf("hall value: %d\r\n", m_hall_unit.value);
+    // m_hall_value_get();
+    // switch (m_hall_unit.value) {
+    //     case 1:
+    //         m_svpwm_generate(MAX_DUTY_VALUE*0.5, EANGLE0);
+    //         break;
+    //     case 2:
+    //         m_svpwm_generate(MAX_DUTY_VALUE*0.5, EANGLE240);
+    //         break;
+    //     case 3:
+    //         m_svpwm_generate(MAX_DUTY_VALUE*0.5, EANGLE300);
+    //         break;
+    //     case 4:
+    //          m_svpwm_generate(MAX_DUTY_VALUE*0.5, EANGLE120);
+    //         break;
+    //     case 5:
+    //         m_svpwm_generate(MAX_DUTY_VALUE*0.5, EANGLE60);
+    //         break;
+    //     case 6:
+    //          m_svpwm_generate(MAX_DUTY_VALUE*0.5, EANGLE180);
+    //         break;
+    //     default:
+    //         printf("hall value: unknown\r\n");
+    //         break;
+    // }
+    // printf("hall value: %d\r\n", m_hall_unit.value);
 
-    observer_vofa_debug();
+    //observer_vofa_debug();
     //pid_vofa_debug();
     /* USER CODE END WHILE */
 

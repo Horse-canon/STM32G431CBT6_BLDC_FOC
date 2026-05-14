@@ -208,7 +208,7 @@ uint16_t m_rotor_angle_calculate(void)
             rotor_angle_inc.u32 = (uint32_t)((float)DθR_DIFF_VALUE / (float)m_hall_unit.time);
             
             /* 注意：虽然给定了假插值，但反馈给速度环的真实速度依然保持为 0，防止 PID 干扰起步 */
-            m_motor_ctrl.m_spd.spd_val = 0; 
+            m_motor_ctrl.m_spd.spd_val = 50; 
         }
         else
         {

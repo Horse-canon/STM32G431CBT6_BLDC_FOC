@@ -197,33 +197,34 @@ void m_spd_pid_execute(void)
 			m_spd_pid_unit.q15_target_value = m_motor_ctrl.m_spd.set_spd_val;
 			/*更新速度环实时值*/
 			m_spd_pid_unit.q15_actual_value = m_motor_ctrl.m_spd.spd_val;
-			m_spd_pid_unit.q15_out_val = m_series_pid_algorithm(&m_spd_pid_unit);
+			//m_spd_pid_unit.q15_out_val = m_series_pid_algorithm(&m_spd_pid_unit);
+			m_parallel_position_pid_algorithm(&m_spd_pid_unit);
 			switch(m_motor_ctrl.direction)
 			{
-				// case CCW:
-				// if(m_spd_pid_unit.q15_out_val > 0)
-				// {
-				// 	m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
-				// }else
-				// {
-				// 	m_iq_pid_unit.q15_target_value = 0;
-				// }
-				// break;
-				// case CW:
-				// if(m_spd_pid_unit.q15_out_val < 0)
-				// {
-				// 	m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
-				// }else
-				// {
-				// 	m_iq_pid_unit.q15_target_value = 0;
-				// }
-				// break;
 				case CCW:
-						m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
+				if(m_spd_pid_unit.q15_out_val > 0)
+				{
+					m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
+				}else
+				{
+					m_iq_pid_unit.q15_target_value = SET_IQ_MIN;
+				}
 				break;
 				case CW:
-						m_iq_pid_unit.q15_target_value = -m_spd_pid_unit.q15_out_val;
+				if(m_spd_pid_unit.q15_out_val < 0)
+				{
+					m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
+				}else
+				{
+					m_iq_pid_unit.q15_target_value = - SET_IQ_MIN;
+				}
 				break;
+				// case CCW:
+				// 		m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
+				// break;
+				// case CW:
+				// 		m_iq_pid_unit.q15_target_value = -m_spd_pid_unit.q15_out_val;
+				// break;
 			}
 		}
 	}
@@ -317,25 +318,25 @@ void m_foc_algorithm_execute(void)
 			/*第3步：电流Park变换（使用最新转子角度，确保Id/Iq估算准确）*/
 			m_park_transform(m_foc_unit.rotor_engle);
 			
-			// /*启动阶段Iq实际值限幅：防止角度初始化误差导致Iq估算值剧烈跳动进入PID*/
-			// if(m_motor_ctrl.m_spd.stabilize_sign == false)
-			// {	  
-			// 	m_iq_pid_unit.q16_kp = 32768;
-			// 	m_id_pid_unit.q16_kp = 32768;
-			// 	m_iq_pid_unit.q16_ki = 2048;   //2300
-            //     m_id_pid_unit.q16_ki = 2048;   //2300
-			// 	// m_iq_pid_unit.q16_kp = 5000;
-			// 	// m_id_pid_unit.q16_kp = 5000;
-			// 	// m_iq_pid_unit.q16_ki = 2300;  
-            //     // m_id_pid_unit.q16_ki = 2300; 
-			// }
-			// else
-			// {
-			// 	m_iq_pid_unit.q16_kp = 32767;
-			// 	m_id_pid_unit.q16_kp = 32767;
-			// 	m_iq_pid_unit.q16_ki = 2048;
-            //     m_id_pid_unit.q16_ki = 2048;
-			// }
+			/*启动阶段Iq实际值限幅：防止角度初始化误差导致Iq估算值剧烈跳动进入PID*/
+			if(m_motor_ctrl.m_spd.stabilize_sign == false)
+			{	  
+				m_iq_pid_unit.q16_kp = 20000;
+				m_id_pid_unit.q16_kp = 20000;
+				m_iq_pid_unit.q16_ki = 2048;   //2300
+                m_id_pid_unit.q16_ki = 2048;   //2300
+				// m_iq_pid_unit.q16_kp = 5000;
+				// m_id_pid_unit.q16_kp = 5000;
+				// m_iq_pid_unit.q16_ki = 2300;  
+                // m_id_pid_unit.q16_ki = 2300; 
+			}
+			else
+			{
+				m_iq_pid_unit.q16_kp = 32767;
+				m_id_pid_unit.q16_kp = 32767;
+				m_iq_pid_unit.q16_ki = 2048;
+                m_id_pid_unit.q16_ki = 2048;
+			}
 			
 			/*第4步：电流环PID → 计算Ud/Uq（使用最新的Iq目标值和实际值）*/
 			m_current_pid_execute();

@@ -62,6 +62,8 @@ void m_phase_current_calculate(void)
     m_foc_unit.coordinate.q15_ia = ia;
     m_foc_unit.coordinate.q15_ib = ib;
     m_foc_unit.coordinate.q15_ic = ic;
+
+    //printf("ia: %d, ib: %d, ic: %d\r\n", ia, ib, ic);
 }
 
 /**

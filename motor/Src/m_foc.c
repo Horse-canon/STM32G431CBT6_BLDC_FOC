@@ -202,6 +202,7 @@ void m_spd_pid_execute(void)
 			//m_spd_pid_unit.q15_out_val = m_series_pid_algorithm(&m_spd_pid_unit);
 			m_parallel_position_pid_algorithm(&m_spd_pid_unit);
 			//m_parallel_incremental_pid_algorithm(&m_spd_pid_unit);
+		
 			switch(m_motor_ctrl.direction)
 			{
 				// case CCW:
@@ -226,7 +227,7 @@ void m_spd_pid_execute(void)
 						m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
 				break;
 				case CW:
-						m_iq_pid_unit.q15_target_value = -m_spd_pid_unit.q15_out_val;
+						m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
 				break;
 			}
 		}
@@ -283,10 +284,10 @@ void m_foc_algorithm_execute(void)
         {
             /* 1. 强行设定定子磁场绝对电角度 */
             /* 每次烧录前依次修改这里: EANGLE0, EANGLE60, EANGLE120... */
-            m_foc_unit.rotor_engle = EANGLE0; 
+            m_foc_unit.rotor_engle = EANGLE60; 
 
             /* 2. 强行施加 D轴开环强电压，彻底抛弃 PID 与 ADC 的干扰！ */
-            m_foc_unit.coordinate.q15_ud = 25000; // D轴开环电压 (范围 0~32767，根据发热和锁死力度调整)
+            m_foc_unit.coordinate.q15_ud = 5000; // D轴开环电压 (范围 0~32767，根据发热和锁死力度调整)
             m_foc_unit.coordinate.q15_uq = 0;    // Q轴电压绝对为 0
             
             /* 3. 直接通过 Ud Uq 进行 Us模长计算以及超前角计算 */
@@ -306,6 +307,7 @@ void m_foc_algorithm_execute(void)
             /* 5. 将计算出的模长赋予 M 值，输出 SVPWM 将转子死死锁住！ */
             m_us_unit.q16_m_value = m_foc_unit.q16_us;
             m_svpwm_generate(m_us_unit.q16_m_value, m_foc_unit.q_engle);
+			
 
         }
         break;

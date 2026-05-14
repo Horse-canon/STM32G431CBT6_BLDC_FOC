@@ -98,7 +98,8 @@ extern "C" {
 #define SET_IQ_MIN                              20               //最小Iq设定值 20
 #define START_IQ                                400              //启动运行阶段Iq 800
 
-#define MOTOR_HALL_STABILIZE_NUMBER             12               //电机霍尔传感器稳定检测阈值
+#define MOTOR_HALL_STABILIZE_NUMBER             12               //电机霍尔传感器稳定检测阈值         // Iq过渡总步数（50步 × 50us = 2.5ms完成过渡）
+
 
 #ifdef __cplusplus
 }

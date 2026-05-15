@@ -18,6 +18,8 @@
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
 
+volatile uint32_t foc_loop_count = 0;
+
 adc_unit_t adc_unit;
 
 /**
@@ -149,6 +151,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
         
         /* 第6步：系统时基滴答更新 */
         m_tick();
+
+        /* 增加这行计数 */
+        foc_loop_count++;
     }
 }
 

@@ -66,6 +66,7 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void pid_vofa_debug(void);
 void observer_vofa_debug(void);
+void observer_IaIbIc_vofa_debug(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -127,8 +128,8 @@ int main(void)
     //printf("%d %d %d\r\n", m_foc_unit.coordinate.q15_ud, m_id_pid_unit.q15_actual_value,m_id_pid_unit.q15_target_value);
     //m_hall_value_get();
     //printf("hall value: %d\r\n", m_hall_unit.value);
-
-    observer_vofa_debug();
+    observer_IaIbIc_vofa_debug();
+    //observer_vofa_debug();
     //pid_vofa_debug();
     /* USER CODE END WHILE */
 
@@ -208,6 +209,26 @@ void pid_vofa_debug(void)
 #endif
 }
 
+void observer_IaIbIc_vofa_debug(void)
+{
+    /* 引入 m_coordinate.c 中的变量 */
+    extern volatile int16_t debug_ia;
+    extern volatile int16_t debug_ib;
+    extern volatile int16_t debug_ic;
+    extern volatile uint8_t debug_print_flag;
+    
+    if (debug_print_flag == 1)
+    {
+        char buf[64] = {0}; // 减小 buffer 大小以节约内存
+        
+        sprintf(buf, "channels: %d,%d,%d\r\n", debug_ia, debug_ib, debug_ic);
+        
+        drv_uart_send_data(DEBUG_COM, (uint8_t *)buf, strlen(buf));
+        
+        debug_print_flag = 0; // 发送完毕，放下旗帜，允许中断抓取下一帧
+    }
+}
+
 /**
   ******************************************************************************
   * @brief  观测器 VOFA+调试   波特率1152000
@@ -218,7 +239,7 @@ void observer_vofa_debug(void)
 {
 	char buf[256] = {0};
 
-#if 1  //Iq		
+#if 0  //Iq		
     float angle_deg = (float) m_foc_unit.rotor_engle / 10922.0f;
 		sprintf(buf, "channels: %d,%d,%d,%d,%f,%d,%d,%d\r\n", \
     m_iq_pid_unit.q15_target_value,
@@ -231,6 +252,15 @@ void observer_vofa_debug(void)
     m_motor_ctrl.m_spd.spd_val
 		);
 #endif
+
+#if 1  //δθ滤波前后角度变化比对		
+		sprintf(buf, "channels: %d,%d,%d\r\n", \
+		m_foc_unit.coordinate.q15_ia, \
+		m_foc_unit.coordinate.q15_ib,\
+    m_foc_unit.coordinate.q15_ic
+		);
+#endif
+
 
 #if 0  //δθ滤波前后角度变化比对		
 		sprintf(buf, "channels: %d,%d\r\n", \

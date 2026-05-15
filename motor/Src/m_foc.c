@@ -323,25 +323,25 @@ void m_foc_algorithm_execute(void)
 			/*第3步：电流Park变换（使用最新转子角度，确保Id/Iq估算准确）*/
 			m_park_transform(m_foc_unit.rotor_engle);
 			
-			// /*启动阶段Iq实际值限幅：防止角度初始化误差导致Iq估算值剧烈跳动进入PID*/
-			// if(m_motor_ctrl.m_spd.stabilize_sign == false)
-			// {	  
-			// 	m_iq_pid_unit.q16_kp = 20000;
-			// 	m_id_pid_unit.q16_kp = 20000;
-			// 	m_iq_pid_unit.q16_ki = 2048;   //2300
-            //     m_id_pid_unit.q16_ki = 2048;   //2300
-			// 	// m_iq_pid_unit.q16_kp = 5000;
-			// 	// m_id_pid_unit.q16_kp = 5000;
-			// 	// m_iq_pid_unit.q16_ki = 2300;  
-            //     // m_id_pid_unit.q16_ki = 2300; 
-			// }
-			// else
-			// {
-			// 	m_iq_pid_unit.q16_kp = 32767;
-			// 	m_id_pid_unit.q16_kp = 32767;
-			// 	m_iq_pid_unit.q16_ki = 2048;
-            //     m_id_pid_unit.q16_ki = 2048;
-			// }
+			/*启动阶段Iq实际值限幅：防止角度初始化误差导致Iq估算值剧烈跳动进入PID*/
+			if(m_motor_ctrl.m_spd.stabilize_sign == false)
+			{	  
+				m_iq_pid_unit.q16_kp = 20000;
+				m_id_pid_unit.q16_kp = 20000;
+				m_iq_pid_unit.q16_ki = 2048;   //2300
+                m_id_pid_unit.q16_ki = 2048;   //2300
+				// m_iq_pid_unit.q16_kp = 5000;
+				// m_id_pid_unit.q16_kp = 5000;
+				// m_iq_pid_unit.q16_ki = 2300;  
+                // m_id_pid_unit.q16_ki = 2300; 
+			}
+			else
+			{
+				m_iq_pid_unit.q16_kp = 32767;
+				m_id_pid_unit.q16_kp = 32767;
+				m_iq_pid_unit.q16_ki = 2048;
+                m_id_pid_unit.q16_ki = 2048;
+			}
 			
 			/*第4步：电流环PID → 计算Ud/Uq（使用最新的Iq目标值和实际值）*/
 			m_current_pid_execute();

@@ -52,7 +52,7 @@ void m_current_pid_init(void)
  ******************************************************************************/
 void m_spd_pid_init(void)
 {
-    m_spd_pid_unit.q16_kp = 16384;              //比例项系数
+    m_spd_pid_unit.q16_kp = 25000;              //比例项系数 16384
     m_spd_pid_unit.q16_ki = 100;                 //积分项系数 10
     m_spd_pid_unit.q16_kd = 0;                  //微分项系数
     m_spd_pid_unit.q15_out_val = 0;             //计算结果输出值

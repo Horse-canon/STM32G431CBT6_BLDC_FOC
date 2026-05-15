@@ -15,13 +15,25 @@
 #include "mcu_adc_cb.h" 
 #include "m_ctrl.h"
 #include "typedef_header.h"
+#include "main.h"
 
 /* 引入标准C数学库，利用STM32G4硬件FPU加速计算 */
 #include <math.h> 
 
+/* 添加下面这行外部函数声明 */
+extern void observer_vofa_debug(void);
+
 /* 定义一个宏，用于将 0~65535 的角度值转换为 0~2π 弧度 */
 /* 2π ≈ 6.28318530718f，转换系数为 6.28318530718 / 65536.0 = 0.00009587379f */
 #define ANGLE_TO_RAD(angle)  ((float)(angle) * 0.00009587379f)
+
+/* ========================================================== */
+/* 高频数据同步抓取缓存 */
+volatile int16_t debug_ia = 0;
+volatile int16_t debug_ib = 0;
+volatile int16_t debug_ic = 0;
+volatile uint8_t debug_print_flag = 0;
+/* ========================================================== */
 
 /**
  ******************************************************************************
@@ -63,7 +75,19 @@ void m_phase_current_calculate(void)
     m_foc_unit.coordinate.q15_ib = ib;
     m_foc_unit.coordinate.q15_ic = ic;
 
-    //printf("ia: %d, ib: %d, ic: %d\r\n", ia, ib, ic);
+    /* 添加以下逻辑：每隔 10 个 FOC 周期 (500us，即 2kHz 刷新率) 抓取一帧数据 */
+    static uint8_t decimation_cnt = 0;
+    if (++decimation_cnt >= 10) 
+    {
+        decimation_cnt = 0;
+        if (debug_print_flag == 0) // 主循环已经发完上一帧了
+        {
+            debug_ia = ia;
+            debug_ib = ib;
+            debug_ic = ic;
+            debug_print_flag = 1;  // 举旗，通知主循环去发
+        }
+    }
 }
 
 /**
@@ -238,7 +262,7 @@ void m_us_theta_c_calculate(void)
         float result_angle_f;
         
         #define PI_DIV_180          (180.0f / M_PI)
-        #define RAD_TO_ANGLE(rad)   (float)(rad * PI_DIV_180)  
+        #define RAD_TO_ANGLE(rad)   (float)(rad * PI_DIV_180)
         
         switch(m_motor_ctrl.direction)
         {

@@ -263,6 +263,30 @@ void observer_vofa_debug(void)
 #endif
 
 
+
+#if 1  // 观察转子角度与线性化霍尔
+    float angle_deg = (float) m_foc_unit.rotor_engle / 10922.0f;
+    /* ==========================================================
+    霍尔顺序映射表 (LUT)
+    下标对应: 原始霍尔值 (0~6)
+    数组值对应: 映射后的连续顺序 (1~6)
+    映射关系: 1->1, 2->5, 3->6, 4->3, 5->2, 6->4
+    ========================================================== */
+    static const uint8_t HALL_SEQ_MAP[7] = {0, 1, 5, 6, 3, 2, 4};
+
+    /* 1. 安全获取原始霍尔值（防止意外干扰导致数组越界）*/
+    uint8_t raw_hall = m_hall_unit.value;
+    if (raw_hall > 6) raw_hall = 0; 
+
+    /* 2. 查表得出线性化的霍尔阶梯值 (1, 2, 3, 4, 5, 6) */
+    uint8_t mapped_hall = HALL_SEQ_MAP[raw_hall];
+    sprintf(buf, "channels: %f,%d\r\n", \
+            angle_deg,       // 通道1：实时电角度 (0~65535)
+            mapped_hall      // 通道2：放大后的霍尔阶梯波 (1~6)
+    );
+#endif
+
+
 #if 0  // SVPWM 三相马鞍波观察      
     sprintf(buf, "channels: %d,%d,%d\r\n", \
             m_svpwm_unit.u_duty_value, \
@@ -279,7 +303,7 @@ void observer_vofa_debug(void)
     );
 #endif
 
-#if 1  // DQ轴电流
+#if 0  // DQ轴电流
     sprintf(buf, "channels: %d,%d\r\n", \
             m_foc_unit.coordinate.q15_id, \
             m_foc_unit.coordinate.q15_iq

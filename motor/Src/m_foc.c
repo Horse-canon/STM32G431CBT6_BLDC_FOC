@@ -273,11 +273,11 @@ void m_foc_algorithm_execute(void)
 				m_rotor_angle_init();	//转子位置角初始化
 				m_current_pid_init(); 	//电流环PID初始化
 				m_spd_pid_init(); 		//速度环PID初始化
-#ifdef OPEN_LOOP_FOC_ENABLE
-				m_motor_ctrl.state_machine = EXECUTE_MOTOR_OPEN_LOOP;
-#else
-				m_motor_ctrl.state_machine = EXECUTE_MOTOR_ALIGNMENT_TEST;
-#endif
+				#ifdef OPEN_LOOP_FOC_ENABLE
+						m_motor_ctrl.state_machine = EXECUTE_MOTOR_OPEN_LOOP;
+				#else
+						m_motor_ctrl.state_machine = EXECUTE_MOTOR_ALIGNMENT_TEST;
+				#endif
 			}
 		}
 		break;
@@ -311,9 +311,8 @@ void m_foc_algorithm_execute(void)
 
 			static uint16_t drive_angle = 0;
 			m_svpwm_generate(20000, drive_angle);
-			drive_angle += 600;
+			drive_angle -= 10;
 			//printf("drive_angle: %d, hall: %d\r\n", drive_angle, m_hall_unit.value);
-			observer_vofa_debug();
         }
         break;
 

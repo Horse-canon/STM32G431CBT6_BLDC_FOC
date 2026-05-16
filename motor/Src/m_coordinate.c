@@ -31,9 +31,6 @@
  ******************************************************************************/
 void m_phase_current_calculate(void)
 {
-    int16_t ia_raw = 0;
-    int16_t ib_raw = 0;
-    int16_t ic_raw = 0;
     int16_t ia = 0;
     int16_t ib = 0;
     int16_t ic = 0;
@@ -46,50 +43,20 @@ void m_phase_current_calculate(void)
         w_current.instant_value = (IW+  -  IBUS+) * 50 + 1.65V +静态误差 * 50
         <<3：将ADC值转换为Q15格式
     */
-    ia_raw = (int16_t)(adc_unit.u_current_offset - adc_unit.u_current.instant_value) << 3;
-    ib_raw = (int16_t)(adc_unit.v_current_offset - adc_unit.v_current.instant_value) << 3;
-    ic_raw = (int16_t)(adc_unit.w_current_offset - adc_unit.w_current.instant_value) << 3;
+    ia = (int16_t)(adc_unit.u_current_offset - adc_unit.u_current.instant_value) << 3;
+    ib = (int16_t)(adc_unit.v_current_offset - adc_unit.v_current.instant_value) << 3;
+    ic = (int16_t)(adc_unit.w_current_offset - adc_unit.w_current.instant_value) << 3;
     
-    /*根据扇区编号：只保留采样窗口最大的一相ADC值，其他两相用KCL定律重建
-      采样窗口最大的相 = 占空比最大的相 = CCR最小的相 = 下管导通时间最长的相
-    */
+    /*根据扇区编号：采样窗口小的电流根据KCL定律计算*/
     switch(m_svpwm_unit.sector)
     {
-        case 1: // U相窗口最大，保留U；重建V、W
-            ia = ia_raw;
-            ib = 0 - ia - ic_raw;
-            ic = 0 - ia - ib_raw;
-            break;
-        case 2: // V相窗口最大，保留V；重建U、W
-            ib = ib_raw;
-            ia = 0 - ib - ic_raw;
-            ic = 0 - ib - ia_raw;
-            break;
-        case 3: // V相窗口最大，保留V；重建U、W
-            ib = ib_raw;
-            ia = 0 - ib - ic_raw;
-            ic = 0 - ib - ia_raw;
-            break;
-        case 4: // W相窗口最大，保留W；重建U、V
-            ic = ic_raw;
-            ia = 0 - ic - ib_raw;
-            ib = 0 - ic - ia_raw;
-            break;
-        case 5: // W相窗口最大，保留W；重建U、V
-            ic = ic_raw;
-            ia = 0 - ic - ib_raw;
-            ib = 0 - ic - ia_raw;
-            break;
-        case 6: // U相窗口最大，保留U；重建V、W
-            ia = ia_raw;
-            ib = 0 - ia - ic_raw;
-            ic = 0 - ia - ib_raw;
-            break;
-        default:
-            ia = ia_raw;
-            ib = ib_raw;
-            ic = ic_raw;
-            break;
+        case 1: ia = 0 - ib - ic; break; //U相采样窗口最小,KCL定律计算采样窗口小电流
+        case 2: ib = 0 - ia - ic; break; //V相采样窗口最小,KCL定律计算采样窗口小电流
+        case 3: ib = 0 - ia - ic; break; //V相采样窗口最小,KCL定律计算采样窗口小电流
+        case 4: ic = 0 - ia - ib; break; //W相采样窗口最小,KCL定律计算采样窗口小电流
+        case 5: ic = 0 - ia - ib; break; //W相采样窗口最小,KCL定律计算采样窗口小电流
+        case 6: ia = 0 - ib - ic; break; //U相采样窗口最小,KCL定律计算采样窗口小电流
+        default: break;
     }
     
     m_foc_unit.coordinate.q15_ia = ia;

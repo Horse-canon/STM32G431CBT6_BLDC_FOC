@@ -26,71 +26,73 @@
 // static const uint16_t  ROTOR_ANGLE_INIT_TABLE[7] = {0,EANGLE0,EANGLE240,EANGLE300,EANGLE120,EANGLE60,EANGLE180};
 
 
-// CCW 逆时针表：记录进入每个扇区时的【起始边界】
-// 对应 H1~H6 测得的切入点: {0, 345°, 204°, 265°, 94°, 38°, 158°}
-static const uint16_t  ROTOR_ANGLE_TABLE_CCW[7]  = {0, 62805, 37140, 48245, 17112, 6917, 28763};
+// CCW 边界: 1(348°), 5(44.376°), 4(98.508°), 6(166.68°), 2(215.454°), 3(265.236°)
+static const uint32_t ROTOR_ANGLE_TABLE_CCW[7] = {
+    0, 
+    63351, // H1: 348.000 * 182.044
+    39222, // H2: 215.454 * 182.044
+    48285, // H3: 265.236 * 182.044
+    17933, // H4: 98.508  * 182.044
+    8078,  // H5: 44.376  * 182.044
+    30343  // H6: 166.680 * 182.044
+};
 
-// CW 顺时针表：记录反向进入每个扇区时的【结束边界】
-// 对应 H1~H6 测得的离开点: {0, 38°, 265°, 345°, 158°, 94°, 204°}
-static const uint16_t  ROTOR_ANGLE_TABLE_CW[7]   = {0, 6917, 48245, 62805, 28763, 17112, 37140};
+// CW 边界: 1(8.232°), 5(66.408°), 4(127.218°), 6(187.446°), 2(245.82°), 3(312.03°)
+static const uint32_t ROTOR_ANGLE_TABLE_CW[7] = {
+    0, 
+    1498,  // H1: 8.232   * 182.044
+    44749, // H2: 245.820 * 182.044
+    56801, // H3: 312.030 * 182.044
+    23163, // H4: 127.218 * 182.044
+    12089, // H5: 66.408  * 182.044
+    34123  // H6: 187.446 * 182.044
+};
 
-// 初始静态表：记录每个扇区的【绝对中心点】(停机启动时使用)
-// 对应 H1~H6 测得的中心点: {0, 11.5°, 234.5°, 305°, 126°, 66°, 181°}
-static const uint16_t  ROTOR_ANGLE_INIT_TABLE[7] = {0, 2094, 42694, 55527, 22938, 12015, 32950};
+/* 5. 初始绝对中心表 (用于静止刚上电的第一脚启动，取双向平均抵消磁滞) */
+/* ========================================================================= */
+static const uint32_t ROTOR_ANGLE_INIT_TABLE[7] = {
+    0, 
+    65201, // H1: 真实中心 358.16°
+    41595, // H2: 真实中心 228.49°
+    53298, // H3: 真实中心 292.77°
+    20881, // H4: 真实中心 114.70°
+    9899,  // H5: 真实中心 54.38°
+    31712  // H6: 真实中心 174.20°
+};
 
-
-/* 1. 上一个扇区查找表 */
+/* 上一个扇区查找表 */
 // 逆时针(CCW)时，当前Hall对应上一个Hall状态 (例如当前为5，上一个是1)
 static const uint8_t PREV_HALL_CCW[7] = {0, 3, 6, 2, 5, 1, 4};
 // 顺时针(CW)时，当前Hall对应上一个Hall状态 (例如当前为1，上一个是5)
 static const uint8_t PREV_HALL_CW[7]  = {0, 5, 3, 1, 6, 4, 2};
 
-/* 2. 角度插值表 D_THETA_DIFF_TABLE
-   公式: 50us * 扇区角度 * 65536 / 360
-   对应 H0~H6: {0, 53°, 61°, 80°, 64°, 56°, 46°} */
-static const uint32_t D_THETA_DIFF_TABLE[7] = {
-    0, 
-    482418, // H1: 53 * 9102.22
-    555236, // H2: 61 * 9102.22
-    728178, // H3: 80 * 9102.22
-    582542, // H4: 64 * 9102.22
-    509724, // H5: 56 * 9102.22
-    418702  // H6: 46 * 9102.22
+/* 角度插值步进系数表：50us * 扇区宽度 * 65536 / 360 */
+// CCW 扇区宽度: H1=56.376°, H2=49.782°, H3=82.764°, H4=68.172°, H5=54.132°, H6=48.774°
+static const uint32_t D_THETA_DIFF_TABLE_CCW[7] = {
+    0, 513147, 453127, 753336, 620517, 492721, 443952
 };
 
-// /* 3. 真实转速计算表 SPEED_CALC_TABLE
-//    公式: 扇区角度 * 60,000,000 / (360 * MOTOR_POLE_PAIRS)
-//    由于极对数是2，计算系数为 83333.33 */
-// static const uint32_t SPEED_CALC_TABLE[7] = {
-//     0, 
-//     4416667, // H1: 53 * 83333.33
-//     5083333, // H2: 61 * 83333.33
-//     6666667, // H3: 80 * 83333.33
-//     5333333, // H4: 64 * 83333.33
-//     4666667, // H5: 56 * 83333.33
-//     3833333  // H6: 46 * 83333.33
-// };
+// CW 扇区宽度: H1=56.202°, H2=58.374°, H3=66.210°, H4=60.810°, H5=58.176°, H6=60.228°
+static const uint32_t D_THETA_DIFF_TABLE_CW[7] = {
+    0, 511563, 531333, 602658, 553506, 529531, 548203
+};
+
+/* ------------------------------------------------------------------------- */
+/* 4. 扇区最大宽度钳位表 (防止角度越界跑到下一个扇区): 扇区宽度 * 65536 / 360 */
+static const uint32_t SECTOR_MAX_WIDTH_TABLE_CCW[7] = {
+    0, 10263, 9063, 15067, 12410, 9854, 8879
+};
+
+static const uint32_t SECTOR_MAX_WIDTH_TABLE_CW[7] = {
+    0, 10231, 10627, 12053, 11070, 10591, 10964
+};
 
 /* 测速专用：360度电周期环形缓冲区 (完美消除霍尔不对称引起的测速波动) */
 static uint32_t hall_time_buf[6] = {0};
 static uint8_t  hall_time_idx = 0;
 static uint32_t hall_time_sum = 0;
+static uint32_t interpolated_angle_sum = 0; // 记录当前扇区已走过的总角度
 
-
-/* 角度插值钳位限制：各扇区真实物理宽度 (防止插值提前越界到下一扇区) */
-/* H1=53°, H2=61°, H3=80°, H4=64°, H5=56°, H6=46° */
-static const uint32_t SECTOR_MAX_WIDTH_TABLE[7] = {
-    0, 
-    9649,  // H1: 53° (53 * 65536 / 360)
-    11105, // H2: 61° 
-    14564, // H3: 80° 
-    11651, // H4: 64° 
-    10194, // H5: 56° 
-    8374   // H6: 46° 
-};
-
-/* 插值累加器：记录进入当前扇区后已经插值走过的总角度 */
-static uint32_t interpolated_angle_sum = 0;
 
 static union_u32 rotor_angle;
 static union_u32 rotor_angle_inc;
@@ -258,10 +260,13 @@ uint16_t m_rotor_angle_calculate(void)
 
         /* 查表获取我们刚刚走完的是哪一个扇区 */
         uint8_t prev_hall;
+        uint32_t d_theta_coeff;
         if (m_motor_ctrl.direction == CCW) {
             prev_hall = PREV_HALL_CCW[m_hall_unit.value];
+            d_theta_coeff = D_THETA_DIFF_TABLE_CCW[prev_hall];
         } else {
             prev_hall = PREV_HALL_CW[m_hall_unit.value];
+            d_theta_coeff = D_THETA_DIFF_TABLE_CW[prev_hall];
         }
         
 /* -------- 核心修改：三段式起步策略 -------- */
@@ -271,22 +276,19 @@ uint16_t m_rotor_angle_calculate(void)
                死锁在扇区中点，提供最大恒定推力，绝不插值 */
             rotor_angle_inc.u32 = 0;
             m_motor_ctrl.m_spd.spd_val = 0; 
+            hall_time_sum = 0;
+            for(int i=0; i<6; i++) hall_time_buf[i] = 0;
         }
         else if (m_hall_unit.start_cnt == 1)
         {
             /* 阶段二 (第 1 次跳变后，等待第 2 次跳变)：
                为了防止磁场死锁导致 Iq 回落，人为给定一个恒定的低速插值步长！ */
             m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE; // 使用设定的最低转速(如50RPM)
-            rotor_angle_inc.u32 = (uint32_t)((float)D_THETA_DIFF_TABLE[prev_hall] / (float)m_hall_unit.time);
+            rotor_angle_inc.u32 = (uint32_t)((float)d_theta_coeff / (float)m_hall_unit.time);
 
-            /* 第一次测速：强行用当前时间填满 6 个缓冲区，快速建立基准 */
-            for(int i=0; i<6; i++) {
-                hall_time_buf[i] = m_hall_unit.angle_60_time; 
-            }
+            for(int i=0; i<6; i++) hall_time_buf[i] = m_hall_unit.angle_60_time; 
             hall_time_sum = m_hall_unit.angle_60_time * 6;
-            
-            /* 注意：虽然给定了假插值，但反馈给速度环的真实速度依然保持为 0，防止 PID 干扰起步 */
-            m_motor_ctrl.m_spd.spd_val = 50; 
+            m_motor_ctrl.m_spd.spd_val = 50;
         }
         else
         {
@@ -297,7 +299,7 @@ uint16_t m_rotor_angle_calculate(void)
             if(m_hall_unit.time >= MIN_SPEED_HALL_TIME_VALUE)
                 m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;
                 
-            rotor_angle_inc.u32 = (uint32_t)((float)D_THETA_DIFF_TABLE[prev_hall] / (float)m_hall_unit.time);
+            rotor_angle_inc.u32 = (uint32_t)((float)d_theta_coeff / (float)m_hall_unit.time);
             // 减去最旧的那个扇区时间
             hall_time_sum -= hall_time_buf[hall_time_idx];
             // 存入刚刚走完的这个扇区的原始时间
@@ -331,9 +333,13 @@ uint16_t m_rotor_angle_calculate(void)
         if (m_hall_unit.update_cnt < HALL_VALUE_TIMEOUT_THRESHOLD_VALUE) 
         {   
             m_hall_unit.update_cnt++;
+
+            uint32_t max_width = (m_motor_ctrl.direction == CCW) ? \
+                                  SECTOR_MAX_WIDTH_TABLE_CCW[m_hall_unit.value] : \
+                                  SECTOR_MAX_WIDTH_TABLE_CW[m_hall_unit.value];
             /* 重点修改：限定插值累计值不能超过当前扇区的物理宽度 
                预留 100 个单位 (约 0.5度) 的安全余量，防止浮点计算误差导致压线越界 */
-            if ( (interpolated_angle_sum + rotor_angle_inc.u32) < (SECTOR_MAX_WIDTH_TABLE[m_hall_unit.value] - 100) )
+            if ( (interpolated_angle_sum + rotor_angle_inc.u32) < (max_width - 100) )
             {
                 interpolated_angle_sum += rotor_angle_inc.u32;
                 switch(m_motor_ctrl.direction)
@@ -346,18 +352,11 @@ uint16_t m_rotor_angle_calculate(void)
                     break;
                 }   
             }
-            else
-            {
-                /* 【触发防越界保护】：插值算得太快了，强行冻结电角度。
-                   定子磁场保持不动，等待真实的物理霍尔边沿到来后再同步。
-                   这有效避免了电磁转矩瞬间反向跳变。 */
-            }
         }
         else
         {
             /* 超时异常处理 (检测到堵转，超过阈值时间没有收到霍尔跳变信号) */
-            m_hall_unit.update_cnt = 0;
-            //m_monitor_unit.err_type.rotor_stall = 1;  
+            m_hall_unit.update_cnt = 0;  
         }
     }
     

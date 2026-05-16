@@ -102,7 +102,7 @@ extern "C" {
 
 
 #ifdef __cplusplus
-}
+#define OPEN_LOOP_UQ                    20000                          // 固定Uq电压 Q15格式 (3000 ≈ 9.2% of 32767)
 #endif
 
 #endif /* __M_PARAMETER_H__ */

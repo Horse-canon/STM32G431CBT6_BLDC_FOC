@@ -23,7 +23,9 @@
 #include "m_coordinate.h"
 //#include "m_monitor.h"
 #include "mcu_key.h"
+#include "main.h"
 
+extern void observer_vofa_debug(void);
 
 m_foc_unit_t m_foc_unit;
 
@@ -270,9 +272,12 @@ void m_foc_algorithm_execute(void)
 				m_motor_init();			//电机参数初始化
 				m_rotor_angle_init();	//转子位置角初始化
 				m_current_pid_init(); 	//电流环PID初始化
-				m_spd_pid_init(); 		//速度环PID初始化	
-				//m_motor_ctrl.state_machine = EXECUTE_MOTOR_EXECUTE;
+				m_spd_pid_init(); 		//速度环PID初始化
+#ifdef OPEN_LOOP_FOC_ENABLE
+				m_motor_ctrl.state_machine = EXECUTE_MOTOR_OPEN_LOOP;
+#else
 				m_motor_ctrl.state_machine = EXECUTE_MOTOR_ALIGNMENT_TEST;
+#endif
 			}
 		}
 		break;
@@ -306,10 +311,38 @@ void m_foc_algorithm_execute(void)
 
 			static uint16_t drive_angle = 0;
 			m_svpwm_generate(20000, drive_angle);
-			drive_angle += 50;
-			printf("drive_angle: %d, hall: %d\r\n", drive_angle, m_hall_unit.value);
+			drive_angle += 600;
+			//printf("drive_angle: %d, hall: %d\r\n", drive_angle, m_hall_unit.value);
+			observer_vofa_debug();
         }
         break;
+
+		case EXECUTE_MOTOR_OPEN_LOOP:	//开环FOC调试模式
+		{
+			static uint16_t open_loop_angle = 0;
+
+			switch(m_motor_ctrl.direction)
+			{
+				case CCW:
+					open_loop_angle += 1;
+				break;
+				case CW:
+					open_loop_angle -= 1;
+				break;
+			}
+
+			m_foc_unit.coordinate.q15_ud = 0;
+			m_foc_unit.coordinate.q15_uq = OPEN_LOOP_UQ;
+
+			m_park_transform(open_loop_angle);
+
+			m_inverse_park_transform(open_loop_angle);
+
+			m_foc_unit.q16_us = (uint16_t)(OPEN_LOOP_UQ > 0 ? OPEN_LOOP_UQ : -OPEN_LOOP_UQ);
+
+			m_svpwm_generate(m_foc_unit.q16_us, open_loop_angle);
+		}
+		break;
 
 		case EXECUTE_MOTOR_EXECUTE:	//电机执行
 		{

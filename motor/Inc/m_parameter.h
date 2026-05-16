@@ -100,6 +100,12 @@ extern "C" {
 
 #define MOTOR_HALL_STABILIZE_NUMBER             12               //电机霍尔传感器稳定检测阈值         // Iq过渡总步数（50步 × 50us = 2.5ms完成过渡）
 
+/* --- 开环 FOC 调试参数 --- */
+#define OPEN_LOOP_FOC_ENABLE                                          // 取消注释以启用开环FOC调试模式
+#define OPEN_LOOP_UQ                    10000                          // 固定Uq电压 Q15格式 (3000 ≈ 9.2% of 32767)
+#define OPEN_LOOP_ELEC_FREQ_HZ          1                            // 开环电频率 Hz
+#define OPEN_LOOP_ANGLE_STEP            ((OPEN_LOOP_ELEC_FREQ_HZ * 65536UL) / 20000UL)  // 每50us角度步进 Q16
+
 
 #ifdef __cplusplus
 }

@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "stm32g4xx_hal.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -78,6 +79,7 @@ void observer_vofa_debug(void);
   * @brief  The application entry point.
   * @retval int
   */
+extern volatile uint32_t g_adc_irq;
 int main(void)
 {
 
@@ -122,9 +124,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    m_us_radius_calculate();
-    m_motor_execute_ctrl();
-    drv_key_scan();
+    // m_us_radius_calculate();
+    // m_motor_execute_ctrl();
+    //drv_key_scan();
     //printf("%d %d %d\r\n", m_foc_unit.coordinate.q15_ud, m_id_pid_unit.q15_actual_value,m_id_pid_unit.q15_target_value);
     // m_hall_value_get();
     // switch (m_hall_unit.value) {
@@ -152,7 +154,11 @@ int main(void)
     // }
     // printf("hall value: %d\r\n", m_hall_unit.value);
 
-    //observer_vofa_debug();
+    observer_vofa_debug();
+    // HAL_Delay(1000);
+    // printf("%d\r\n", g_adc_irq);
+
+
     //pid_vofa_debug();
     /* USER CODE END WHILE */
 
@@ -242,7 +248,7 @@ void observer_vofa_debug(void)
 {
 	char buf[256] = {0};
 
-#if 1  //Iq		
+#if 0  //Iq		
     float angle_deg = (float) m_foc_unit.rotor_engle / 10922.0f;
 		sprintf(buf, "channels: %d,%d,%d,%d,%f,%d,%d,%d\r\n", \
     m_iq_pid_unit.q15_target_value,
@@ -254,6 +260,37 @@ void observer_vofa_debug(void)
     m_motor_ctrl.m_spd.set_spd_val, 
     m_motor_ctrl.m_spd.spd_val
 		);
+#endif
+
+
+#if 0  // SVPWM 三相马鞍波观察      
+    sprintf(buf, "channels: %d,%d,%d\r\n", \
+            m_svpwm_unit.u_duty_value, \
+            m_svpwm_unit.v_duty_value, \
+            m_svpwm_unit.w_duty_value
+    );
+#endif
+
+#if 0  // 相电流
+    sprintf(buf, "channels: %d,%d,%d\r\n", \
+            m_foc_unit.coordinate.q15_ia, \
+            m_foc_unit.coordinate.q15_ib, \
+            m_foc_unit.coordinate.q15_ic
+    );
+#endif
+
+#if 1  // DQ轴电流
+    sprintf(buf, "channels: %d,%d\r\n", \
+            m_foc_unit.coordinate.q15_id, \
+            m_foc_unit.coordinate.q15_iq
+    );
+#endif
+
+#if 0  // DQ轴电压
+    sprintf(buf, "channels: %d,%d\r\n", \
+            m_foc_unit.coordinate.q15_ud, \
+            m_foc_unit.coordinate.q15_uq
+    );
 #endif
 
 #if 0  //δθ滤波前后角度变化比对		

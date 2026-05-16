@@ -9,7 +9,7 @@
 
 m_motor_ctrl_t m_motor_ctrl = 
 {
-    .state_machine = EXECUTE_MOTOR_STOP,
+    .state_machine = EXECUTE_MOTOR_START,
     .offset_current_sign = false,
     .direction			 = CCW
 };

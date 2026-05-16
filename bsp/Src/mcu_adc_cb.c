@@ -127,6 +127,7 @@ void drv_adc1_filter(void)
  * @brief  STM32 注入组转换完成中断回调 (高频 FOC 控制核心)
  ******************************************************************************
  */
+volatile uint32_t g_adc_irq = 0;
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
     /* ADC1 和 ADC2 的注入组是硬件同步触发的，只需在一个句柄中处理 FOC 即可 */
@@ -149,6 +150,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
         
         /* 第6步：系统时基滴答更新 */
         m_tick();
+
+        g_adc_irq++;
     }
 }
 

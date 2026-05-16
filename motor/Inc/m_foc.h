@@ -37,6 +37,7 @@ typedef struct
     uint16_t rotor_engle;		//转子位置角
 	uint16_t q_engle;   		//Us与0°位置夹角
 	uint16_t advance_angle;		//超前角
+	uint16_t open_loop_angle;	//开环虚拟自增电角度
 	
 	uint16_t q16_us;			//Q15 pid闭环计算的Ud Uq值计算的Us模长
 	int16_t  q15_us_max;		//Us模长最大值

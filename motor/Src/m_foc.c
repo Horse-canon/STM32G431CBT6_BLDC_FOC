@@ -318,28 +318,28 @@ void m_foc_algorithm_execute(void)
 
 		case EXECUTE_MOTOR_OPEN_LOOP:	//开环FOC调试模式
 		{
-			static uint16_t open_loop_angle = 0;
+			m_hall_value_get();
 
 			switch(m_motor_ctrl.direction)
 			{
 				case CCW:
-					open_loop_angle += 1;
+					m_foc_unit.open_loop_angle += 1;
 				break;
 				case CW:
-					open_loop_angle -= 1;
+					m_foc_unit.open_loop_angle -= 1;
 				break;
 			}
 
-			m_foc_unit.coordinate.q15_ud = 0;
-			m_foc_unit.coordinate.q15_uq = OPEN_LOOP_UQ;
+			m_foc_unit.coordinate.q15_ud = OPEN_LOOP_UD;
+			m_foc_unit.coordinate.q15_uq = 0;
 
-			m_park_transform(open_loop_angle);
+			m_park_transform(m_foc_unit.open_loop_angle);
 
-			m_inverse_park_transform(open_loop_angle);
+			m_inverse_park_transform(m_foc_unit.open_loop_angle);
 
-			m_foc_unit.q16_us = (uint16_t)(OPEN_LOOP_UQ > 0 ? OPEN_LOOP_UQ : -OPEN_LOOP_UQ);
+			m_foc_unit.q16_us = (uint16_t)(OPEN_LOOP_UD > 0 ? OPEN_LOOP_UD : -OPEN_LOOP_UD);
 
-			m_svpwm_generate(m_foc_unit.q16_us, open_loop_angle);
+			m_svpwm_generate(m_foc_unit.q16_us, m_foc_unit.open_loop_angle);
 		}
 		break;
 

@@ -102,7 +102,7 @@ extern "C" {
 
 /* --- 开环 FOC 调试参数 --- */
 #define OPEN_LOOP_FOC_ENABLE                                          // 取消注释以启用开环FOC调试模式
-#define OPEN_LOOP_UQ                    10000                          // 固定Uq电压 Q15格式 (3000 ≈ 9.2% of 32767)
+#define OPEN_LOOP_UD                    20000                          // 固定Ud电压 Q15格式 (Ud>0, Uq=0 → 电压矢量沿d轴，直接输出转子角度)
 #define OPEN_LOOP_ELEC_FREQ_HZ          1                            // 开环电频率 Hz
 #define OPEN_LOOP_ANGLE_STEP            ((OPEN_LOOP_ELEC_FREQ_HZ * 65536UL) / 20000UL)  // 每50us角度步进 Q16
 

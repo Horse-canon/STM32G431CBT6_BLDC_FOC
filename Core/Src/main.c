@@ -124,8 +124,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    // m_us_radius_calculate();
-    // m_motor_execute_ctrl();
+    //m_us_radius_calculate();
+    //m_motor_execute_ctrl();
     //drv_key_scan();
     //printf("%d %d %d\r\n", m_foc_unit.coordinate.q15_ud, m_id_pid_unit.q15_actual_value,m_id_pid_unit.q15_target_value);
     // m_hall_value_get();
@@ -264,15 +264,18 @@ void observer_vofa_debug(void)
 
 
 
-#if 1  // 观察转子角度与线性化霍尔
-    float angle_deg = (float) m_foc_unit.rotor_engle / 10922.0f;
+#if 1  // 观察虚拟转子位置角与线性化霍尔
+    /* Ud>0, Uq=0 模式：电压矢量沿 d 轴（转子 N 极方向）
+       open_loop_angle 直接就是转子虚拟电角度，无需 ±90° 修正
+    */
+    float virtual_rotor_deg = (float) m_foc_unit.open_loop_angle / 10922.0f;
     /* ==========================================================
     霍尔顺序映射表 (LUT)
     下标对应: 原始霍尔值 (0~6)
     数组值对应: 映射后的连续顺序 (1~6)
-    映射关系: 1->1, 2->5, 3->6, 4->3, 5->2, 6->4
+    映射关系: 1->1, 5->2, 4->3, 6->4, 2->5, 3->6
     ========================================================== */
-    static const uint8_t HALL_SEQ_MAP[7] = {0, 1, 5, 6, 3, 2, 4};
+    static const uint8_t HALL_SEQ_MAP[7] = {0, 5, 3, 4, 1, 6, 2};
 
     /* 1. 安全获取原始霍尔值（防止意外干扰导致数组越界）*/
     uint8_t raw_hall = m_hall_unit.value;
@@ -280,9 +283,10 @@ void observer_vofa_debug(void)
 
     /* 2. 查表得出线性化的霍尔阶梯值 (1, 2, 3, 4, 5, 6) */
     uint8_t mapped_hall = HALL_SEQ_MAP[raw_hall];
-    sprintf(buf, "channels: %f,%d\r\n", \
-            angle_deg,       // 通道1：实时电角度 (0~65535)
-            mapped_hall      // 通道2：放大后的霍尔阶梯波 (1~6)
+    sprintf(buf, "channels: %f,%d,%d\r\n", \
+            virtual_rotor_deg, // 通道1：虚拟转子位置角 (0~6.0°)
+            raw_hall,          // 通道2：原始霍尔值 (1~6)
+            mapped_hall        // 通道3：线性化霍尔阶梯波 (1~6)
     );
 #endif
 

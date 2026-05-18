@@ -277,9 +277,6 @@ void m_foc_algorithm_execute(void)
 		}
 		break;
 
-		/* ======================================================= */
-        /* 2. 🌟 增加全新、纯净的测试状态专属逻辑 */
-        /* ======================================================= */
         case EXECUTE_MOTOR_ALIGNMENT_TEST: // 霍尔对齐测试专属状态
         {
             /* 1. 强行设定定子磁场绝对电角度 */
@@ -326,8 +323,8 @@ void m_foc_algorithm_execute(void)
 			/*启动阶段Iq实际值限幅：防止角度初始化误差导致Iq估算值剧烈跳动进入PID*/
 			if(m_motor_ctrl.m_spd.stabilize_sign == false)
 			{	  
-				m_iq_pid_unit.q16_kp = 20000;
-				m_id_pid_unit.q16_kp = 20000;
+				m_iq_pid_unit.q16_kp = 32768;
+				m_id_pid_unit.q16_kp = 32768;
 				m_iq_pid_unit.q16_ki = 2048;   //2300
                 m_id_pid_unit.q16_ki = 2048;   //2300
 				// m_iq_pid_unit.q16_kp = 5000;

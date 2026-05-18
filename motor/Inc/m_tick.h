@@ -15,7 +15,6 @@ typedef struct
     uint16_t phase_current_offset_time;	//相电流偏移采样时间
 	uint16_t spd_pid_cycle_time;		//速度环执行周期时间
 } m_tick_unit_t;
-
 extern m_tick_unit_t m_tick_unit;
 
 void m_tick(void);

@@ -23,6 +23,8 @@ typedef struct
 	
 	int16_t q15_id;			//park变换Id
 	int16_t q15_iq;			//park变换Iq
+	int16_t q15_id_filter;	//park变换Id滤波值
+	int16_t q15_iq_filter;	//park变换Iq滤波值
 	
 	int16_t q15_ud;			//PI控制器d轴Ud输出
 	int16_t q15_uq;			//PI控制器q轴Uq输出

@@ -231,7 +231,7 @@ void m_spd_pid_execute(void)
 						m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
 				break;
 				case CW:
-						m_iq_pid_unit.q15_target_value = m_spd_pid_unit.q15_out_val;
+						m_iq_pid_unit.q15_target_value = -m_spd_pid_unit.q15_out_val;
 				break;
 			}
 		}

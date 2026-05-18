@@ -49,6 +49,7 @@ static const uint32_t ROTOR_ANGLE_TABLE_CW[7] = {
     34123  // H6: 187.446 * 182.044
 };
 
+
 /* 5. 初始绝对中心表 (用于静止刚上电的第一脚启动，取双向平均抵消磁滞) */
 /* ========================================================================= */
 static const uint32_t ROTOR_ANGLE_INIT_TABLE[7] = {
@@ -323,7 +324,15 @@ uint16_t m_rotor_angle_calculate(void)
             if(m_motor_ctrl.m_spd.stabilize_sign == false)
             {
                 m_motor_ctrl.m_spd.set_spd_val = m_motor_ctrl.m_spd.spd_val;
-                m_spd_pid_unit.i_sum.s32 = (int32_t)m_motor_ctrl.q15_start_iq << 16;
+                /*根据旋转方向设置速度环积分项初始值*/
+                if(m_motor_ctrl.direction == CCW)
+                {
+                    m_spd_pid_unit.i_sum.s32 = (int32_t)m_motor_ctrl.q15_start_iq << 16;
+                }
+                else
+                {
+                    m_spd_pid_unit.i_sum.s32 = -(int32_t)m_motor_ctrl.q15_start_iq << 16;
+                }
             }
             m_motor_ctrl.m_spd.stabilize_sign    = true;
             m_motor_ctrl.m_spd.speed_update_sign = true;

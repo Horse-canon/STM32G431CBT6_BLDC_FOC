@@ -153,7 +153,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *hadc)
         m_tick();
 
         /* 增加这行计数 */
-        foc_loop_count++;
+        //foc_loop_count++;
     }
 }
 

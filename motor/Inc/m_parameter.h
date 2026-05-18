@@ -100,6 +100,10 @@ extern "C" {
 
 #define MOTOR_HALL_STABILIZE_NUMBER             24               //电机霍尔传感器稳定检测阈值         // Iq过渡总步数（50步 × 50us = 2.5ms完成过渡）
 
+/* --- 电流环测试参数 --- */
+#define CURRENT_LOOP_TEST_TIME                  (20 * 10000)     // 0.5秒 (50us * 10000)
+#define CURRENT_LOOP_TEST_ID_HIGH               300              // Id 目标高值
+#define CURRENT_LOOP_TEST_ID_LOW                0                // Id 目标低值
 
 #ifdef __cplusplus
 #define OPEN_LOOP_UQ                    20000                          // 固定Uq电压 Q15格式 (3000 ≈ 9.2% of 32767)

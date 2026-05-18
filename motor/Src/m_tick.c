@@ -22,4 +22,7 @@ void m_tick(void)
 	if(m_tick_unit.spd_pid_cycle_time != 0)	{
         m_tick_unit.spd_pid_cycle_time--;
     }
+	if(m_tick_unit.current_loop_test_time != 0)	{
+        m_tick_unit.current_loop_test_time--;
+    }
 }

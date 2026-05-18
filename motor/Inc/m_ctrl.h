@@ -15,7 +15,7 @@ typedef enum
     EXECUTE_MOTOR_START,               // 电机启动
     EXECUTE_MOTOR_BOOST_CHARGING,      // 等待充电
     EXECUTE_MOTOR_ALIGNMENT_TEST,      // 霍尔静态锁死测表模式
-    //EXECUTE_MOTOR_OPEN_LOOP,           // 开环FOC调试模式（固定Uq + 自增电角度）
+    EXECUTE_MOTOR_CURRENT_LOOP_TEST,   // 电流环测试模式（Id 在 0 和 500 之间周期波动）
     EXECUTE_MOTOR_EXECUTE,             // 电机执行
 } motor_execute_state_machine_e;
 

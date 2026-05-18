@@ -12,6 +12,7 @@
 */
 #include "m_foc.h"
 #include <stdio.h>
+#include <stdbool.h>
 #include "m_parameter.h"
 #include "m_svpwm.h"
 #include "m_tick.h"
@@ -125,7 +126,7 @@ int16_t Iq_target = 512;
 void m_current_pid_execute(void)
 {
 	/*Id电流环PID*/
-	m_id_pid_unit.q15_target_value = 0;								//Id目标值固定为0
+	// m_id_pid_unit.q15_target_value = 0;							//Id目标值由调用方设定（正常模式=0，测试模式=波动值）
 	m_id_pid_unit.q15_actual_value = m_foc_unit.coordinate.q15_id;	//更新实时Id
 	/*Id电流环PID计算结果Ud：串联型PID*/
 	m_foc_unit.coordinate.q15_ud =  m_series_pid_algorithm(&m_id_pid_unit);
@@ -271,7 +272,8 @@ void m_foc_algorithm_execute(void)
 				m_rotor_angle_init();	//转子位置角初始化
 				m_current_pid_init(); 	//电流环PID初始化
 				m_spd_pid_init(); 		//速度环PID初始化	
-				m_motor_ctrl.state_machine = EXECUTE_MOTOR_EXECUTE;
+				m_motor_ctrl.state_machine = EXECUTE_MOTOR_CURRENT_LOOP_TEST;
+				//m_motor_ctrl.state_machine = EXECUTE_MOTOR_EXECUTE;
 				//m_motor_ctrl.state_machine = EXECUTE_MOTOR_ALIGNMENT_TEST;
 			}
 		}
@@ -309,6 +311,60 @@ void m_foc_algorithm_execute(void)
         }
         break;
 
+        case EXECUTE_MOTOR_CURRENT_LOOP_TEST: // 电流环测试模式
+        {
+            static bool id_target_high = false;
+            static bool first_entry = true;
+
+            if(first_entry)
+            {
+                first_entry = false;
+                m_tick_unit.current_loop_test_time = CURRENT_LOOP_TEST_TIME;
+                id_target_high = true;
+            }
+
+            m_hall_value_get();
+            m_foc_unit.rotor_engle = m_rotor_angle_calculate();
+
+            if(m_tick_unit.current_loop_test_time == 0)
+            {
+                m_tick_unit.current_loop_test_time = CURRENT_LOOP_TEST_TIME;
+                id_target_high = !id_target_high;
+            }
+
+            if(id_target_high)
+            {
+                m_id_pid_unit.q15_target_value = (int16_t)CURRENT_LOOP_TEST_ID_HIGH;
+            }
+            else
+            {
+                m_id_pid_unit.q15_target_value = (int16_t)CURRENT_LOOP_TEST_ID_LOW;
+            }
+            m_iq_pid_unit.q15_target_value = 0;
+
+            m_park_transform(m_foc_unit.rotor_engle);
+
+            m_current_pid_execute();
+
+            m_us_theta_c_calculate();
+
+            switch(m_motor_ctrl.direction)
+            {
+                case CCW:
+                    m_foc_unit.q_engle = m_foc_unit.rotor_engle + EANGLE90 + m_foc_unit.advance_angle;
+                break;
+                case CW:
+                    m_foc_unit.q_engle = m_foc_unit.rotor_engle - EANGLE90 - m_foc_unit.advance_angle;
+                break;
+            }
+
+			m_foc_unit.q_engle = m_foc_unit.rotor_engle;
+
+            m_us_unit.q16_m_value = m_foc_unit.q16_us;
+            m_svpwm_generate(m_us_unit.q16_m_value, m_foc_unit.q_engle);
+        }
+        break;
+
 		case EXECUTE_MOTOR_EXECUTE:	//电机执行
 		{
 			/*第1步：转子位置角计算（使用最新霍尔信号）*/
@@ -319,6 +375,9 @@ void m_foc_algorithm_execute(void)
 			
 			/*第3步：电流Park变换（使用最新转子角度，确保Id/Iq估算准确）*/
 			m_park_transform(m_foc_unit.rotor_engle);
+			
+			/*正常模式：Id目标值固定为0*/
+			m_id_pid_unit.q15_target_value = 0;
 			
 			/*启动阶段Iq实际值限幅：防止角度初始化误差导致Iq估算值剧烈跳动进入PID*/
 			if(m_motor_ctrl.m_spd.stabilize_sign == false)

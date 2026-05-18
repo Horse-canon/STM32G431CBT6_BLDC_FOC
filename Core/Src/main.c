@@ -252,17 +252,12 @@ void observer_vofa_debug(void)
 {
 	char buf[256] = {0};
 
-#if 1  //Iq		
-    float angle_deg = (float) m_foc_unit.rotor_engle / 10922.0f;
-		sprintf(buf, "channels: %d,%d,%d,%d,%f,%d,%d,%d\r\n", \
-    m_iq_pid_unit.q15_target_value,
-    m_iq_pid_unit.q15_actual_value,
+#if 1  // 电流环调试：Id目标/实际 + Iq实际
+		sprintf(buf, "channels: %d,%d,%d,%d\r\n", \
+    m_id_pid_unit.q15_target_value,
     m_id_pid_unit.q15_actual_value,
-    m_hall_unit.value,
-    angle_deg,
-    m_foc_unit.coordinate.q15_uq,
-    m_motor_ctrl.m_spd.set_spd_val, 
-    m_motor_ctrl.m_spd.spd_val
+    m_iq_pid_unit.q15_target_value,
+    m_iq_pid_unit.q15_actual_value
 		);
 #endif
 

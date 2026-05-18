@@ -24,6 +24,9 @@ extern "C" {
  */
 #define LPF_CALC(Xin, Yout)     ((Yout>>1) + (Yout>>2) + (Xin>>2))  
 
+/* 重度低通滤波 (1/8 新值 + 7/8 旧值)，专门用来熨平电流毛刺 */
+#define LPF_HEAVY_CALC(Xin, Yout)   ((Yout) - ((Yout)>>3) + ((Xin)>>3))
+
 /* CLAMP 宏：将值限制在 min 和 max 之间 */
 #define CLAMP(x, min, max)     (((x) < (min)) ? (min) : (((x) > (max)) ? (max) : (x)))  
 

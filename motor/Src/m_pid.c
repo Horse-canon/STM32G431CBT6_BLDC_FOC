@@ -52,8 +52,8 @@ void m_current_pid_init(void)
  ******************************************************************************/
 void m_spd_pid_init(void)
 {
-    m_spd_pid_unit.q16_kp = 25000;              //比例项系数 16384
-    m_spd_pid_unit.q16_ki = 10;                 //积分项系数 10
+    m_spd_pid_unit.q16_kp = 20000;              //比例项系数 16384
+    m_spd_pid_unit.q16_ki = 200;                 //积分项系数 10
     m_spd_pid_unit.q16_kd = 0;                  //微分项系数
     m_spd_pid_unit.q15_out_val = 0;             //计算结果输出值
     m_spd_pid_unit.q15_last_err = 0;            //上次误差值
@@ -118,7 +118,7 @@ int16_t m_parallel_position_pid_algorithm(m_pid_unit_t *pid)
 {
     union_s32 val;
     int16_t   d_diff_val;
-    
+    /* 查表获取我们刚刚走完的是哪一个扇区 */
     /*计算当前误差*/
     pid->q15_err = pid->q15_target_value - pid->q15_actual_value;
     

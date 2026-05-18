@@ -17,6 +17,7 @@
 #include "m_foc.h"
 #include "m_ctrl.h"
 #include "typedef_header.h" // 确保包含 union_u32 和 LPF_CALC 定义
+#include "m_pid.h"
 
 
 
@@ -299,7 +300,7 @@ uint16_t m_rotor_angle_calculate(void)
             if(m_hall_unit.time >= MIN_SPEED_HALL_TIME_VALUE)
                 m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;
                 
-            rotor_angle_inc.u32 = (uint32_t)((float)d_theta_coeff / (float)m_hall_unit.time);
+            rotor_angle_inc.u32 = (uint32_t)((float)546133.0f / (float)m_hall_unit.time);
             // 减去最旧的那个扇区时间
             hall_time_sum -= hall_time_buf[hall_time_idx];
             // 存入刚刚走完的这个扇区的原始时间
@@ -322,6 +323,7 @@ uint16_t m_rotor_angle_calculate(void)
             if(m_motor_ctrl.m_spd.stabilize_sign == false)
             {
                 m_motor_ctrl.m_spd.set_spd_val = m_motor_ctrl.m_spd.spd_val;
+                m_spd_pid_unit.i_sum.s32 = (int32_t)m_motor_ctrl.q15_start_iq << 16;
             }
             m_motor_ctrl.m_spd.stabilize_sign    = true;
             m_motor_ctrl.m_spd.speed_update_sign = true;
@@ -339,7 +341,7 @@ uint16_t m_rotor_angle_calculate(void)
                                   SECTOR_MAX_WIDTH_TABLE_CW[m_hall_unit.value];
             /* 重点修改：限定插值累计值不能超过当前扇区的物理宽度 
                预留 100 个单位 (约 0.5度) 的安全余量，防止浮点计算误差导致压线越界 */
-            if ( (interpolated_angle_sum + rotor_angle_inc.u32) < (max_width - 100) )
+            if ( (interpolated_angle_sum + rotor_angle_inc.u32) < (max_width) )
             {
                 interpolated_angle_sum += rotor_angle_inc.u32;
                 switch(m_motor_ctrl.direction)
@@ -357,6 +359,14 @@ uint16_t m_rotor_angle_calculate(void)
         {
             /* 超时异常处理 (检测到堵转，超过阈值时间没有收到霍尔跳变信号) */
             m_hall_unit.update_cnt = 0;  
+
+            /* -------- 防死锁逻辑 -------- */
+            m_motor_ctrl.m_spd.spd_val = 0;        // 1. 真实速度强制清零，打破 239 幻影
+            hall_time_sum = 0;                     // 2. 清除历史测速缓存
+            m_hall_unit.start_cnt = 0;             // 3. 重置起步状态机，允许重新插值
+
+            /* 强制触发一次速度环更新！让 PI 控制器看到速度变成 0 了，从而重新输出大电流把电机“踹”醒 */
+            m_motor_ctrl.m_spd.speed_update_sign = true;
         }
     }
     

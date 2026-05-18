@@ -270,13 +270,13 @@ void m_us_theta_c_calculate(void)
                 /* 使用 math.h 的 atan2f() 计算 */
                 result_rad_f = atan2f(-y, x);
                 result_angle_f = RAD_TO_ANGLE(result_rad_f) / 360.0f;
-                m_foc_unit.advance_angle = (uint16_t)(result_angle_f * 65536.0f); 
+                m_foc_unit.advance_angle = (uint16_t)((int32_t)(result_angle_f * 65536.0f)); 
             break;
             case CW:
                 /* 使用 math.h 的 atan2f() 计算 */
                 result_rad_f = atan2f(-y, -x);
                 result_angle_f = RAD_TO_ANGLE(result_rad_f) / 360.0f;
-                m_foc_unit.advance_angle = (uint16_t)(result_angle_f * 65536.0f); 
+                m_foc_unit.advance_angle = (uint16_t)((int32_t)(result_angle_f * 65536.0f)); 
             break;
         }
     }

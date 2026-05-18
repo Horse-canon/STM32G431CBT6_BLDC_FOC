@@ -142,7 +142,7 @@ int main(void)
     //m_hall_value_get();
     //printf("hall value: %d\r\n", m_hall_unit.value);
     //observer_IaIbIc_vofa_debug();
-    //observer_vofa_debug();
+    observer_vofa_debug();
     //pid_vofa_debug();
     /* USER CODE END WHILE */
 

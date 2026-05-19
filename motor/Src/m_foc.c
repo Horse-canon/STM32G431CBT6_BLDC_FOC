@@ -127,6 +127,7 @@ void m_current_pid_execute(void)
     /*Id电流环PID*/
     m_id_pid_unit.q15_target_value = 0;								//Id目标值固定为0
     /*Id一阶低通滤波*/
+	// m_foc_unit.coordinate.q15_id_filter = m_foc_unit.coordinate.q15_id;
     m_foc_unit.coordinate.q15_id_filter = LPF_HEAVY_CALC(m_foc_unit.coordinate.q15_id, m_foc_unit.coordinate.q15_id_filter);
     m_id_pid_unit.q15_actual_value = m_foc_unit.coordinate.q15_id_filter;	//更新实时Id（滤波后）
     /*Id电流环PID计算结果Ud：串联型PID*/
@@ -134,6 +135,7 @@ void m_current_pid_execute(void)
     //m_foc_unit.coordinate.q15_ud =  m_parallel_incremental_pid_algorithm(&m_id_pid_unit);
 
     /*Iq一阶低通滤波*/
+	// m_foc_unit.coordinate.q15_iq_filter = m_foc_unit.coordinate.q15_iq;
     m_foc_unit.coordinate.q15_iq_filter = LPF_HEAVY_CALC(m_foc_unit.coordinate.q15_iq, m_foc_unit.coordinate.q15_iq_filter);
     m_iq_pid_unit.q15_actual_value = m_foc_unit.coordinate.q15_iq_filter;//更新实时Iq（滤波后）
     /*Iq电流环PID计算结果Uq：串联型PID*/

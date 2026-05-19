@@ -59,35 +59,34 @@ void m_phase_current_calculate(void)
     ib = (int16_t)(adc_unit.v_current_offset - adc_unit.v_current.instant_value) << 3;
     ic = (int16_t)(adc_unit.w_current_offset - adc_unit.w_current.instant_value) << 3;
     
-    /*根据扇区编号：采样窗口小的电流根据KCL定律计算*/
-    switch(m_svpwm_unit.sector)
+    /* =====================================================================
+     * 读取当前正在生效的定时器比较寄存器值。
+     * CCR值越小 -> 下管导通时间越短 -> 采样窗口越窄 -> 采样信噪比越差
+     * ===================================================================== */
+    uint16_t ccr_u = TIM1->CCR1;
+    uint16_t ccr_v = TIM1->CCR2;
+    uint16_t ccr_w = TIM1->CCR3;
+
+    /* 比较出谁的窗口最窄，就舍弃并重构谁 */
+    if (ccr_u <= ccr_v && ccr_u <= ccr_w)
     {
-        case 1: ia = 0 - ib - ic; break; //U相采样窗口最小,KCL定律计算采样窗口小电流
-        case 2: ib = 0 - ia - ic; break; //V相采样窗口最小,KCL定律计算采样窗口小电流
-        case 3: ib = 0 - ia - ic; break; //V相采样窗口最小,KCL定律计算采样窗口小电流
-        case 4: ic = 0 - ia - ib; break; //W相采样窗口最小,KCL定律计算采样窗口小电流
-        case 5: ic = 0 - ia - ib; break; //W相采样窗口最小,KCL定律计算采样窗口小电流
-        case 6: ia = 0 - ib - ic; break; //U相采样窗口最小,KCL定律计算采样窗口小电流
-        default: break;
+        /* U 相 CCR 最小，采样最危险，利用基尔霍夫定律从 V, W 重构 U 相 */
+        ia = 0 - ib - ic; 
+    }
+    else if (ccr_v <= ccr_u && ccr_v <= ccr_w)
+    {
+        /* V 相 CCR 最小，采样最危险，重构 V 相 */
+        ib = 0 - ia - ic; 
+    }
+    else
+    {
+        /* W 相 CCR 最小，采样最危险，重构 W 相 */
+        ic = 0 - ia - ib; 
     }
     
     m_foc_unit.coordinate.q15_ia = ia;
     m_foc_unit.coordinate.q15_ib = ib;
     m_foc_unit.coordinate.q15_ic = ic;
-
-    /* 添加以下逻辑：每隔 10 个 FOC 周期 (500us，即 2kHz 刷新率) 抓取一帧数据 */
-    static uint8_t decimation_cnt = 0;
-    if (++decimation_cnt >= 10) 
-    {
-        decimation_cnt = 0;
-        if (debug_print_flag == 0) // 主循环已经发完上一帧了
-        {
-            debug_ia = ia;
-            debug_ib = ib;
-            debug_ic = ic;
-            debug_print_flag = 1;  // 举旗，通知主循环去发
-        }
-    }
 }
 
 /**

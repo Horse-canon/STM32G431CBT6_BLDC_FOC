@@ -62,23 +62,6 @@ static const uint32_t ROTOR_ANGLE_INIT_TABLE[7] = {
     31712  // H6: 真实中心 174.20°
 };
 
-/* 上一个扇区查找表 */
-// 逆时针(CCW)时，当前Hall对应上一个Hall状态 (例如当前为5，上一个是1)
-static const uint8_t PREV_HALL_CCW[7] = {0, 3, 6, 2, 5, 1, 4};
-// 顺时针(CW)时，当前Hall对应上一个Hall状态 (例如当前为1，上一个是5)
-static const uint8_t PREV_HALL_CW[7]  = {0, 5, 3, 1, 6, 4, 2};
-
-/* 角度插值步进系数表：50us * 扇区宽度 * 65536 / 360 */
-// CCW 扇区宽度: H1=56.376°, H2=49.782°, H3=82.764°, H4=68.172°, H5=54.132°, H6=48.774°
-static const uint32_t D_THETA_DIFF_TABLE_CCW[7] = {
-    0, 513147, 453127, 753336, 620517, 492721, 443952
-};
-
-// CW 扇区宽度: H1=56.202°, H2=58.374°, H3=66.210°, H4=60.810°, H5=58.176°, H6=60.228°
-static const uint32_t D_THETA_DIFF_TABLE_CW[7] = {
-    0, 511563, 531333, 602658, 553506, 529531, 548203
-};
-
 /* ------------------------------------------------------------------------- */
 /* 4. 扇区最大宽度钳位表 (防止角度越界跑到下一个扇区): 扇区宽度 * 65536 / 360 */
 static const uint32_t SECTOR_MAX_WIDTH_TABLE_CCW[7] = {
@@ -259,17 +242,6 @@ uint16_t m_rotor_angle_calculate(void)
         }
 
         m_hall_unit.time = m_hall_unit.angle_60_time_filter2;
-
-        /* 查表获取我们刚刚走完的是哪一个扇区 */
-        uint8_t prev_hall;
-        uint32_t d_theta_coeff;
-        if (m_motor_ctrl.direction == CCW) {
-            prev_hall = PREV_HALL_CCW[m_hall_unit.value];
-            d_theta_coeff = D_THETA_DIFF_TABLE_CCW[prev_hall];
-        } else {
-            prev_hall = PREV_HALL_CW[m_hall_unit.value];
-            d_theta_coeff = D_THETA_DIFF_TABLE_CW[prev_hall];
-        }
         
 /* -------- 核心修改：三段式起步策略 -------- */
         if (m_hall_unit.start_cnt == 0)
@@ -286,7 +258,7 @@ uint16_t m_rotor_angle_calculate(void)
             /* 阶段二 (第 1 次跳变后，等待第 2 次跳变)：
                为了防止磁场死锁导致 Iq 回落，人为给定一个恒定的低速插值步长！ */
             m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE; // 使用设定的最低转速(如50RPM)
-            rotor_angle_inc.u32 = (uint32_t)((float)d_theta_coeff / (float)m_hall_unit.time);
+            rotor_angle_inc.u32 = (uint32_t)((float)546133.0f / (float)m_hall_unit.time);
 
             for(int i=0; i<6; i++) hall_time_buf[i] = m_hall_unit.angle_60_time; 
             hall_time_sum = m_hall_unit.angle_60_time * 6;
@@ -301,11 +273,17 @@ uint16_t m_rotor_angle_calculate(void)
             if(m_hall_unit.time >= MIN_SPEED_HALL_TIME_VALUE)
                 m_hall_unit.time = MIN_SPEED_HALL_TIME_VALUE;
                 
+
+            /* 使用恒定角速度插值 */
+            /* 50us * (65536 / 6) = 50 * 10922.66 = 546133 */
+            /* 物理意义：无论当前扇区多宽，我们都以平均 60° 的时间基准匀速推进电角度 */
             rotor_angle_inc.u32 = (uint32_t)((float)546133.0f / (float)m_hall_unit.time);
+
             // 减去最旧的那个扇区时间
             hall_time_sum -= hall_time_buf[hall_time_idx];
             // 存入刚刚走完的这个扇区的原始时间
-            hall_time_buf[hall_time_idx] = m_hall_unit.angle_60_time;
+            // hall_time_buf[hall_time_idx] = m_hall_unit.angle_60_time;
+            hall_time_buf[hall_time_idx] = m_hall_unit.time;
             // 加上最新的这个扇区时间
             hall_time_sum += hall_time_buf[hall_time_idx];
             // 游标推进

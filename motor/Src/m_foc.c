@@ -324,10 +324,10 @@ void m_foc_algorithm_execute(void)
 			switch(m_motor_ctrl.direction)
 			{
 				case CCW:
-					open_loop_angle += 1;
+					open_loop_angle += 30;
 				break;
 				case CW:
-					open_loop_angle -= 1;
+					open_loop_angle -= 30;
 				break;
 			}
 

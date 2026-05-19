@@ -271,7 +271,7 @@ void observer_vofa_debug(void)
     );
 #endif
 
-#if 0  // 相电流
+#if 1  // 相电流
     sprintf(buf, "channels: %d,%d,%d\r\n", \
             m_foc_unit.coordinate.q15_ia, \
             m_foc_unit.coordinate.q15_ib, \
@@ -279,7 +279,7 @@ void observer_vofa_debug(void)
     );
 #endif
 
-#if 1  // DQ轴电流
+#if 0  // DQ轴电流
     sprintf(buf, "channels: %d,%d\r\n", \
             m_foc_unit.coordinate.q15_id, \
             m_foc_unit.coordinate.q15_iq

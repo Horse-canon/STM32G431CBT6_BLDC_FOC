@@ -37,7 +37,7 @@ extern "C" {
 /* * 死区时间计算：170MHz 时钟，1us 约对应 170 个计数位
  * 注意：如果您依靠预驱 FD6288T 硬件死区，这里可以设小或设为 0
  */
-#define DEAD_TIME                  170         // 170MHz 下 1us 对应 170
+#define DEAD_TIME                  34         // 170MHz 下 1us 对应 170
 #define MIN_DUTY_VALUE             (DEAD_TIME )        // 最小有效脉宽限制（防止波形太窄）
 #define MAX_DUTY_VALUE             (MCU_PWM_TIMER_ARR  - (DEAD_TIME + (DEAD_TIME >> 1)))
 
@@ -90,7 +90,7 @@ extern "C" {
 #define M_OPEN_LOOP_VALUE                       9830
 
 #define US_MAX_VALUE                            (int16_t)29491   //Us模长最大值 Q15格式 90%
-#define PHASE_CURRENT_OFFSET_TIME               (20 * 1000)      //1s
+#define PHASE_CURRENT_OFFSET_TIME               (40 * 1000)      //1s
 
 #define SPD_PID_CYCLE_TIME                      (20 * 30)        //200ms
 #define INC_SPD_RPM                             100              //斜坡转速递增步进        

@@ -131,16 +131,16 @@ void m_current_pid_execute(void)
     m_foc_unit.coordinate.q15_id_filter = LPF_HEAVY_CALC(m_foc_unit.coordinate.q15_id, m_foc_unit.coordinate.q15_id_filter);
     m_id_pid_unit.q15_actual_value = m_foc_unit.coordinate.q15_id_filter;	//更新实时Id（滤波后）
     /*Id电流环PID计算结果Ud：串联型PID*/
-    m_foc_unit.coordinate.q15_ud =  m_series_pid_algorithm(&m_id_pid_unit);
-    //m_foc_unit.coordinate.q15_ud =  m_parallel_incremental_pid_algorithm(&m_id_pid_unit);
+    // m_foc_unit.coordinate.q15_ud =  m_series_pid_algorithm(&m_id_pid_unit);
+    m_foc_unit.coordinate.q15_ud =  m_parallel_incremental_pid_algorithm(&m_id_pid_unit);
 
     /*Iq一阶低通滤波*/
 	// m_foc_unit.coordinate.q15_iq_filter = m_foc_unit.coordinate.q15_iq;
     m_foc_unit.coordinate.q15_iq_filter = LPF_HEAVY_CALC(m_foc_unit.coordinate.q15_iq, m_foc_unit.coordinate.q15_iq_filter);
     m_iq_pid_unit.q15_actual_value = m_foc_unit.coordinate.q15_iq_filter;//更新实时Iq（滤波后）
     /*Iq电流环PID计算结果Uq：串联型PID*/
-    m_foc_unit.coordinate.q15_uq =  m_series_pid_algorithm(&m_iq_pid_unit);
-    //m_foc_unit.coordinate.q15_uq =  m_parallel_incremental_pid_algorithm(&m_iq_pid_unit);
+    // m_foc_unit.coordinate.q15_uq =  m_series_pid_algorithm(&m_iq_pid_unit);
+    m_foc_unit.coordinate.q15_uq =  m_parallel_incremental_pid_algorithm(&m_iq_pid_unit);
 }
 
 uint32_t loop_cnt;

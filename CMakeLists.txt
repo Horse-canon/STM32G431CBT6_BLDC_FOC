@@ -60,6 +60,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     motor/Src/m_coordinate.c
     motor/Src/m_pid.c
     motor/Src/m_observer.c
+    motor/Src/m_rotor_angle_sensorless.c
    )
 
 # Add include paths

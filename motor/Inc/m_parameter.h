@@ -32,6 +32,8 @@ extern "C" {
  * 中心对齐模式下：ARR = 170MHz / (2 * 20KHz) = 4250
  */
 #define MCU_PWM_TIMER_ARR         (4250)  
+#define PWM_FREQUENCY							(20000)   //PWM频率 20KHZ
+#define PWM_PERIOD_T							((float)(1.0f / (float)PWM_FREQUENCY))//PWM周期
 
 /* --- 占空比限制与死区补偿 --- */
 /* * 死区时间计算：170MHz 时钟，1us 约对应 170 个计数位

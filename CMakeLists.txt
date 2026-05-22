@@ -59,6 +59,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     bsp/Src/mcu_key.c
     motor/Src/m_coordinate.c
     motor/Src/m_pid.c
+    motor/Src/m_observer.c
    )
 
 # Add include paths

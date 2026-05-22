@@ -62,9 +62,9 @@ extern "C" {
 
 /* 电机极对数及范围设定 */
 #define MOTOR_POLE_PAIRS           2
-#define MOTOR_MIN_SPEED            300     //电机最小转速
+#define MOTOR_MIN_SPEED            1000     //电机最小转速
 #define MOTOR_MAX_SPEED            2300    //电机最大转速 36BL61:2300  3650:6000
-#define MIN_SPEED_HALL_TIME_VALUE  SPEED_HALL_TIME_CALCULATE(50, MOTOR_POLE_PAIRS, 1)
+#define MIN_SPEED_HALL_TIME_VALUE  SPEED_HALL_TIME_CALCULATE(MOTOR_MIN_SPEED, MOTOR_POLE_PAIRS, 1)
 #define MAX_SPEED_HALL_TIME_VALUE  SPEED_HALL_TIME_CALCULATE(MOTOR_MAX_SPEED, MOTOR_POLE_PAIRS, 1)
 
 /* 角度步进计算 */
@@ -96,9 +96,53 @@ extern "C" {
 #define INC_SPD_RPM                             100              //斜坡转速递增步进        
 #define DEC_SPD_RPM                             100              //斜坡减速递减步进
 #define SET_IQ_MIN                              20               //最小Iq设定值 20
-#define START_IQ                                400              //启动运行阶段Iq 800
+#define START_IQ                                1000              //启动运行阶段Iq 800
 
 #define MOTOR_HALL_STABILIZE_NUMBER             12               //电机霍尔传感器稳定检测阈值         // Iq过渡总步数（50步 × 50us = 2.5ms完成过渡）
+
+/*线电感*/
+#define LINE_INDUCTANCE_U_V_MEASUREMENT			(12.011f * 1000.0f)		 //UV线电感 mH*1000=uH	
+#define LINE_INDUCTANCE_U_W_MEASUREMENT			(13.352f * 1000.0f)		 //UW线电感	mH*1000=uH 	
+#define LINE_INDUCTANCE_V_W_MEASUREMENT			(12.850f * 1000.0f)		 //VW线电感	mH*1000=uH
+/*相电感=三相线电感之和/3/2*/
+#define PHASE_INDUCTANCE_MEASUREMENT			((LINE_INDUCTANCE_U_V_MEASUREMENT+ LINE_INDUCTANCE_U_W_MEASUREMENT+ LINE_INDUCTANCE_V_W_MEASUREMENT) / 3.0f / 2.0f)
+
+/*线电阻*/
+#define LINE_RESISTANCE_U_V_MEASUREMENT			(13.2f)		 //UV线电阻 Ohm	
+#define LINE_RESISTANCE_U_W_MEASUREMENT			(13.2f)		 //UW线电阻	Ohm	
+#define LINE_RESISTANCE_V_W_MEASUREMENT			(13.3f)		 //VW线电阻	Ohm
+/*相电阻=三相线电阻之和/3/2*/
+#define PHASE_RESISTANCE_MEASUREMENT			((LINE_RESISTANCE_U_V_MEASUREMENT+ LINE_RESISTANCE_U_W_MEASUREMENT+ LINE_RESISTANCE_V_W_MEASUREMENT) / 3.0f / 2.0f)
+
+/*F = 1 - Ts * R / L   Q15格式*/												
+#define F_COEFF									((int16_t)((1.0f - PWM_PERIOD_T * 1000000.0f * PHASE_RESISTANCE_MEASUREMENT / PHASE_INDUCTANCE_MEASUREMENT)*32768.0f))
+/*G = Ts / L   Q15格式*/																								
+#define G_COEFF									((int16_t)(PWM_PERIOD_T * 1000000.0f/ PHASE_INDUCTANCE_MEASUREMENT*32768.0f))
+
+/*观测器最大S值 Q15格式 0-32767范围*/ 
+#define OBSERVER_S_MAX_VALUE					170//150  256
+/*观测器K滑膜增益系数  Q15格式 0-32767范围*/
+#define OBSERVER_K_SLIDE						30000//30000  32767
+
+#define ROTOR_POSITION_STEP_1_US_VALUE			(20000)			      //转子预定位第1步:Us模长 10%	
+#define ROTOR_POSITION_STEP_1_TIME				(20 * 500)	 	      //转子预定位第1步持续时间:20K->50us  500ms
+#define ROTOR_POSITION_STEP_1_THETA_ANGLE       (EANGLE90)		//转子预定位第1步预定位角度:Us与0°矢量夹角
+
+#define ROTOR_POSITION_STEP_2_US_VALUE			(20000)			//转子预定位第1步:Us模长
+#define ROTOR_POSITION_STEP_2_TIME				(20 * 500)		//转子预定位第2步持续时间:20K->50us 500ms
+#define ROTOR_POSITION_STEP_2_THETA_ANGLE		(EANGLE0)		//转子预定位第2步预定位角度:Us与0°矢量夹角
+
+#define MOTOR_DRAG_TICK_TIME					(10)			    //强拖tick时间 500us
+#define MOTOR_DRAG_ACC_MAX_VALUE				(65000)			//强拖加速度最大值
+#define MOTOR_DRAG_ACC_STEP_VALUE				(5)				  //加速度步进值
+#define MOTOR_DRAG_CLOSE_LOOP_TICK				(100)			//强拖切换闭环tick时间电流校正周期
+#define MOTOR_DRAG_CLOSE_LOOP_THRESHOLD_VALUE	(3)		//切换到闭环阈值
+#define MOTOR_DRAG_ACC_MAX_OMIGA_VALUE			(546)		//500RPM最小转速对应的角速度Q15格式值
+
+#define Q16_TO_Q15(q16_x) 						(int16_t)(q16_x >> 1) //Q16数据转Q15数据格式
+#define Q15_TO_Q16(q15_x) 						(uint16_t)(q15_x)	  //Q15数据转Q16数据格式
+
+#define SPD_PID_EXECUTE_CYCLE					(20 * 10)		//10ms执行一次
 
 #ifdef __cplusplus
 #define OPEN_LOOP_UQ                    20000                          // 固定Uq电压 Q15格式 (3000 ≈ 9.2% of 32767)
